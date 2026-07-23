@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+.eggs/
+
+# Ambientes virtuais
+.venv/
+venv/
+env/
+
+# Variáveis de ambiente
+.env
+
+# Docker
+*.log
+
+# Editor
+.vscode/
+.idea/
+
+# Sistema
+Thumbs.db
+
+# Testes / cobertura
+.pytest_cache/
+.coverage
+htmlcov/

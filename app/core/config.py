@@ -13,6 +13,14 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "cobranca-api"
     ENVIRONMENT: str = "development"
 
+    POSTGRES_USER: str
+    POSTGRES_PASSWORD: str
+    POSTGRES_DB: str
+    POSTGRES_HOST: str
+    POSTGRES_PORT: int
+
+    DATABASE_URL: str
+
 
 @lru_cache
 def get_settings() -> Settings:

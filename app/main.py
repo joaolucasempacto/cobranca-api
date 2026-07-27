@@ -12,6 +12,7 @@ from app.exceptions.handlers import (
     app_error_handler,
     unhandled_exception_handler,
 )
+from app.routers.health import router as health_router
 
 setup_logging()
 logger = logging.getLogger(__name__)
@@ -37,8 +38,7 @@ app = FastAPI(lifespan=lifespan)
 app.add_exception_handler(AppError, app_error_handler)
 app.add_exception_handler(Exception, unhandled_exception_handler)
 
-
-@app.get("/")
-def home():
-    logger.info("Health check endpoint acessado")
-    return {"message": "API rodando 🚀"}
+app.include_router(
+    health_router,
+    prefix="/api/v1",
+)

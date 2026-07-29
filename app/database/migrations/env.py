@@ -10,6 +10,7 @@ from pathlib import Path
 
 sys.path.append(str(Path(__file__).resolve().parents[3]))
 
+import app.models  # noqa: F401
 from app.core.config import get_settings
 from app.database.base import Base
 

@@ -14,3 +14,9 @@ class PermissionService:
         if permission is None:
             raise NotFoundError("Permissão não encontrada")
         return permission
+
+    def get_by_code(self, code: str) -> Permission:
+        permission = self._uow.permissions.get_by_code(code)
+        if permission is None:
+            raise NotFoundError("Permissão não encontrada")
+        return permission

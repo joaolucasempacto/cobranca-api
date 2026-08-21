@@ -12,3 +12,6 @@ class RevokedTokenService:
         if revoked_token is None:
             raise NotFoundError("Token revogado não encontrado")
         return revoked_token
+
+    def is_revoked(self, jti: str) -> bool:
+        return self._uow.revoked_tokens.exists_by_jti(jti)

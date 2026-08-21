@@ -15,6 +15,13 @@ class RevokedTokenRepository:
         )
         return self._session.scalar(statement)
 
+    def exists_by_jti(self, jti: str) -> bool:
+        statement = select(RevokedToken.id).where(
+            RevokedToken.jti == jti,
+            RevokedToken.deleted_at.is_(None),
+        )
+        return self._session.scalar(statement) is not None
+
     def add(self, revoked_token: RevokedToken) -> RevokedToken:
         self._session.add(revoked_token)
         self._session.flush()

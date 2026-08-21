@@ -15,3 +15,8 @@ class RevokedTokenService:
 
     def is_revoked(self, jti: str) -> bool:
         return self._uow.revoked_tokens.exists_by_jti(jti)
+
+    def add(self, revoked_token: RevokedToken) -> RevokedToken:
+        added_token = self._uow.revoked_tokens.add(revoked_token)
+        self._uow.commit()
+        return added_token

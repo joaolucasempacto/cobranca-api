@@ -24,6 +24,14 @@ class UserRepository:
         )
         return self._session.scalar(statement)
 
+    def get_active_by_email(self, email: str) -> User | None:
+        statement = select(User).where(
+            User.email == email,
+            User.is_active.is_(True),
+            User.deleted_at.is_(None),
+        )
+        return self._session.scalar(statement)
+
     def exists_by_email(self, email: str) -> bool:
         statement = select(User.id).where(
             User.email == email,

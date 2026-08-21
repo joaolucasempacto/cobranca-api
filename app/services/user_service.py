@@ -15,6 +15,12 @@ class UserService:
             raise NotFoundError("Usuário não encontrado")
         return user
 
+    def get_active_by_id(self, user_id: UUID) -> User:
+        user = self._uow.users.get_active_by_id(user_id)
+        if user is None:
+            raise NotFoundError("Usuário ativo não encontrado")
+        return user
+
     def get_by_email(self, email: str) -> User:
         user = self._uow.users.get_by_email(email)
         if user is None:

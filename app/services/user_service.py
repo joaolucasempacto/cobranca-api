@@ -44,3 +44,8 @@ class UserService:
 
     def active_email_exists(self, email: str) -> bool:
         return self._uow.users.active_exists_by_email(email)
+
+    def add(self, user: User) -> User:
+        added_user = self._uow.users.add(user)
+        self._uow.commit()
+        return added_user

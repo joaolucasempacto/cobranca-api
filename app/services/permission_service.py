@@ -21,6 +21,9 @@ class PermissionService:
             raise NotFoundError("Permissão não encontrada")
         return permission
 
+    def permission_exists(self, code: str) -> bool:
+        return self._uow.permissions.exists_by_code(code)
+
     def add(self, permission: Permission) -> Permission:
         added_permission = self._uow.permissions.add(permission)
         self._uow.commit()

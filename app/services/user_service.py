@@ -20,3 +20,6 @@ class UserService:
         if user is None:
             raise NotFoundError("Usuário não encontrado")
         return user
+
+    def email_exists(self, email: str) -> bool:
+        return self._uow.users.exists_by_email(email)

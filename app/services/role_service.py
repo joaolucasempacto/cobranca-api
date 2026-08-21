@@ -21,6 +21,9 @@ class RoleService:
             raise NotFoundError("Perfil não encontrado")
         return role
 
+    def role_exists(self, name: str) -> bool:
+        return self._uow.roles.exists_by_name(name)
+
     def add(self, role: Role) -> Role:
         added_role = self._uow.roles.add(role)
         self._uow.commit()

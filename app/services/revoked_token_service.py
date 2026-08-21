@@ -1,0 +1,14 @@
+from app.exceptions.base import NotFoundError
+from app.models.revoked_token import RevokedToken
+from app.repositories.unit_of_work import UnitOfWork
+
+
+class RevokedTokenService:
+    def __init__(self, uow: UnitOfWork) -> None:
+        self._uow = uow
+
+    def get_by_jti(self, jti: str) -> RevokedToken:
+        revoked_token = self._uow.revoked_tokens.get_by_jti(jti)
+        if revoked_token is None:
+            raise NotFoundError("Token revogado não encontrado")
+        return revoked_token

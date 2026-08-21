@@ -20,3 +20,8 @@ class PermissionService:
         if permission is None:
             raise NotFoundError("Permissão não encontrada")
         return permission
+
+    def add(self, permission: Permission) -> Permission:
+        added_permission = self._uow.permissions.add(permission)
+        self._uow.commit()
+        return added_permission

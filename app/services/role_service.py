@@ -14,3 +14,9 @@ class RoleService:
         if role is None:
             raise NotFoundError("Perfil não encontrado")
         return role
+
+    def get_by_name(self, name: str) -> Role:
+        role = self._uow.roles.get_by_name(name)
+        if role is None:
+            raise NotFoundError("Perfil não encontrado")
+        return role

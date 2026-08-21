@@ -35,3 +35,6 @@ class UserService:
 
     def email_exists(self, email: str) -> bool:
         return self._uow.users.exists_by_email(email)
+
+    def active_email_exists(self, email: str) -> bool:
+        return self._uow.users.active_exists_by_email(email)

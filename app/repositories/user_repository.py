@@ -47,6 +47,14 @@ class UserRepository:
         )
         return self._session.scalar(statement) is not None
 
+    def active_exists_by_email(self, email: str) -> bool:
+        statement = select(User.id).where(
+            User.email == email,
+            User.is_active.is_(True),
+            User.deleted_at.is_(None),
+        )
+        return self._session.scalar(statement) is not None
+
     def add(self, user: User) -> User:
         self._session.add(user)
         self._session.flush()

@@ -20,3 +20,8 @@ class RoleService:
         if role is None:
             raise NotFoundError("Perfil não encontrado")
         return role
+
+    def add(self, role: Role) -> Role:
+        added_role = self._uow.roles.add(role)
+        self._uow.commit()
+        return added_role

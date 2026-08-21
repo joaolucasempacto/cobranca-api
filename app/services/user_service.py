@@ -24,6 +24,9 @@ class UserService:
     def user_exists(self, user_id: UUID) -> bool:
         return self._uow.users.exists_by_id(user_id)
 
+    def active_user_exists(self, user_id: UUID) -> bool:
+        return self._uow.users.active_exists_by_id(user_id)
+
     def get_by_email(self, email: str) -> User:
         user = self._uow.users.get_by_email(email)
         if user is None:

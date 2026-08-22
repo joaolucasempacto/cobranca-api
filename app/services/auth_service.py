@@ -1,6 +1,11 @@
 from dataclasses import dataclass
+from uuid import UUID
 
-from app.core.jwt import create_access_token, create_refresh_token
+from app.core.jwt import (
+    create_access_token,
+    create_refresh_token,
+    decode_token,
+)
 from app.core.security import verify_password
 from app.exceptions.base import UnauthorizedError
 from app.repositories.unit_of_work import UnitOfWork
@@ -32,7 +37,35 @@ class AuthService:
         if user is None or not verify_password(password, user.password_hash):
             raise UnauthorizedError("Credenciais inválidas")
 
-        subject = str(user.id)
+        return self._create_token_pair(str(user.id))
+
+    def refresh(self, refresh_token: str) -> TokenPair:
+        payload = decode_token(
+            token=refresh_token,
+            secret_key=self._secret_key,
+            algorithm=self._algorithm,
+            expected_type="refresh",
+        )
+        jti = payload.get("jti")
+        subject = payload.get("sub")
+        if not isinstance(jti, str) or not isinstance(subject, str):
+            raise UnauthorizedError("Token inválido ou expirado")
+
+        if self._uow.revoked_tokens.exists_by_jti(jti):
+            raise UnauthorizedError("Token revogado")
+
+        try:
+            user_id = UUID(subject)
+        except ValueError as exc:
+            raise UnauthorizedError("Token inválido ou expirado") from exc
+
+        user = self._uow.users.get_active_by_id(user_id)
+        if user is None:
+            raise UnauthorizedError("Usuário inativo ou não encontrado")
+
+        return self._create_token_pair(str(user.id))
+
+    def _create_token_pair(self, subject: str) -> TokenPair:
         access_token = create_access_token(
             subject=subject,
             secret_key=self._secret_key,

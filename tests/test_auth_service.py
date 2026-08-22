@@ -77,3 +77,90 @@ class AuthServiceTests(TestCase):
             algorithm="HS256",
             expires_days=10,
         )
+
+    @patch("app.services.auth_service.decode_token")
+    def test_refresh_rejects_revoked_token(self, decode_token: Mock) -> None:
+        user_id = uuid4()
+        decode_token.return_value = {
+            "sub": str(user_id),
+            "jti": "revoked-jti",
+        }
+        self.uow.revoked_tokens.exists_by_jti.return_value = True
+
+        with self.assertRaisesRegex(UnauthorizedError, "Token revogado"):
+            self.service.refresh("refresh-token")
+
+        self.uow.revoked_tokens.exists_by_jti.assert_called_once_with(
+            "revoked-jti"
+        )
+        self.uow.users.get_active_by_id.assert_not_called()
+
+    @patch("app.services.auth_service.decode_token")
+    def test_refresh_rejects_inactive_user(self, decode_token: Mock) -> None:
+        user_id = uuid4()
+        decode_token.return_value = {
+            "sub": str(user_id),
+            "jti": "active-jti",
+        }
+        self.uow.revoked_tokens.exists_by_jti.return_value = False
+        self.uow.users.get_active_by_id.return_value = None
+
+        with self.assertRaisesRegex(
+            UnauthorizedError,
+            "Usuário inativo ou não encontrado",
+        ):
+            self.service.refresh("refresh-token")
+
+        self.uow.users.get_active_by_id.assert_called_once_with(user_id)
+
+    @patch(
+        "app.services.auth_service.create_refresh_token",
+        return_value="new-refresh-token",
+    )
+    @patch(
+        "app.services.auth_service.create_access_token",
+        return_value="new-access-token",
+    )
+    @patch("app.services.auth_service.decode_token")
+    def test_refresh_returns_new_token_pair(
+        self,
+        decode_token: Mock,
+        create_access_token: Mock,
+        create_refresh_token: Mock,
+    ) -> None:
+        user_id = uuid4()
+        user = Mock(id=user_id)
+        decode_token.return_value = {
+            "sub": str(user_id),
+            "jti": "active-jti",
+        }
+        self.uow.revoked_tokens.exists_by_jti.return_value = False
+        self.uow.users.get_active_by_id.return_value = user
+
+        result = self.service.refresh("refresh-token")
+
+        self.assertEqual(
+            result,
+            TokenPair(
+                access_token="new-access-token",
+                refresh_token="new-refresh-token",
+            ),
+        )
+        decode_token.assert_called_once_with(
+            token="refresh-token",
+            secret_key="test-secret",
+            algorithm="HS256",
+            expected_type="refresh",
+        )
+        create_access_token.assert_called_once_with(
+            subject=str(user_id),
+            secret_key="test-secret",
+            algorithm="HS256",
+            expires_minutes=20,
+        )
+        create_refresh_token.assert_called_once_with(
+            subject=str(user_id),
+            secret_key="test-secret",
+            algorithm="HS256",
+            expires_days=10,
+        )

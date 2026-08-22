@@ -1,8 +1,10 @@
+from datetime import datetime, timezone
 from unittest import TestCase
 from unittest.mock import Mock, patch
 from uuid import uuid4
 
 from app.exceptions.base import UnauthorizedError
+from app.models.enums import TokenType
 from app.services.auth_service import AuthService, TokenPair
 
 
@@ -164,3 +166,69 @@ class AuthServiceTests(TestCase):
             algorithm="HS256",
             expires_days=10,
         )
+
+    @patch("app.services.auth_service.decode_token")
+    def test_logout_revokes_token_and_commits(self, decode_token: Mock) -> None:
+        user_id = uuid4()
+        expires_at = 1_800_000_000
+        decode_token.return_value = {
+            "sub": str(user_id),
+            "jti": "logout-jti",
+            "type": "refresh",
+            "exp": expires_at,
+        }
+        self.uow.revoked_tokens.exists_by_jti.return_value = False
+
+        self.service.logout("refresh-token")
+
+        decode_token.assert_called_once_with(
+            token="refresh-token",
+            secret_key="test-secret",
+            algorithm="HS256",
+        )
+        revoked_token = self.uow.revoked_tokens.add.call_args.args[0]
+        self.assertEqual(revoked_token.jti, "logout-jti")
+        self.assertEqual(revoked_token.user_id, user_id)
+        self.assertEqual(revoked_token.token_type, TokenType.REFRESH)
+        self.assertEqual(
+            revoked_token.expires_at,
+            datetime.fromtimestamp(expires_at, tz=timezone.utc),
+        )
+        self.uow.commit.assert_called_once_with()
+
+    @patch("app.services.auth_service.decode_token")
+    def test_logout_is_idempotent_for_revoked_token(
+        self,
+        decode_token: Mock,
+    ) -> None:
+        decode_token.return_value = {
+            "sub": str(uuid4()),
+            "jti": "revoked-jti",
+            "type": "refresh",
+            "exp": 1_800_000_000,
+        }
+        self.uow.revoked_tokens.exists_by_jti.return_value = True
+
+        self.service.logout("refresh-token")
+
+        self.uow.revoked_tokens.add.assert_not_called()
+        self.uow.commit.assert_not_called()
+
+    @patch("app.services.auth_service.decode_token")
+    def test_logout_rejects_invalid_subject(self, decode_token: Mock) -> None:
+        decode_token.return_value = {
+            "sub": "invalid-user-id",
+            "jti": "logout-jti",
+            "type": "refresh",
+            "exp": 1_800_000_000,
+        }
+        self.uow.revoked_tokens.exists_by_jti.return_value = False
+
+        with self.assertRaisesRegex(
+            UnauthorizedError,
+            "Token inválido ou expirado",
+        ):
+            self.service.logout("refresh-token")
+
+        self.uow.revoked_tokens.add.assert_not_called()
+        self.uow.commit.assert_not_called()

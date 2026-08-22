@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from uuid import UUID
 
 from app.core.jwt import (
@@ -8,6 +9,8 @@ from app.core.jwt import (
 )
 from app.core.security import verify_password
 from app.exceptions.base import UnauthorizedError
+from app.models.enums import TokenType
+from app.models.revoked_token import RevokedToken
 from app.repositories.unit_of_work import UnitOfWork
 
 
@@ -64,6 +67,44 @@ class AuthService:
             raise UnauthorizedError("Usuário inativo ou não encontrado")
 
         return self._create_token_pair(str(user.id))
+
+    def logout(self, token: str) -> None:
+        payload = decode_token(
+            token=token,
+            secret_key=self._secret_key,
+            algorithm=self._algorithm,
+        )
+        jti = payload.get("jti")
+        subject = payload.get("sub")
+        token_type = payload.get("type")
+        expires_at = payload.get("exp")
+        if (
+            not isinstance(jti, str)
+            or not isinstance(subject, str)
+            or token_type not in ("access", "refresh")
+            or type(expires_at) not in (int, float)
+        ):
+            raise UnauthorizedError("Token inválido ou expirado")
+
+        if self._uow.revoked_tokens.exists_by_jti(jti):
+            return
+
+        try:
+            user_id = UUID(subject)
+        except ValueError as exc:
+            raise UnauthorizedError("Token inválido ou expirado") from exc
+
+        revoked_token = RevokedToken(
+            jti=jti,
+            user_id=user_id,
+            token_type=TokenType(token_type),
+            expires_at=datetime.fromtimestamp(
+                expires_at,
+                tz=timezone.utc,
+            ),
+        )
+        self._uow.revoked_tokens.add(revoked_token)
+        self._uow.commit()
 
     def _create_token_pair(self, subject: str) -> TokenPair:
         access_token = create_access_token(

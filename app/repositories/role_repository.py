@@ -10,6 +10,16 @@ class RoleRepository:
     def __init__(self, session: Session) -> None:
         self._session = session
 
+    def list(self, offset: int, limit: int) -> list[Role]:
+        statement = (
+            select(Role)
+            .where(Role.deleted_at.is_(None))
+            .order_by(Role.created_at.desc())
+            .offset(offset)
+            .limit(limit)
+        )
+        return list(self._session.scalars(statement).all())
+
     def get_by_id(self, role_id: UUID) -> Role | None:
         statement = select(Role).where(
             Role.id == role_id,

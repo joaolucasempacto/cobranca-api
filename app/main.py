@@ -14,6 +14,7 @@ from app.exceptions.handlers import (
 )
 from app.routers.auth import router as auth_router
 from app.routers.health import router as health_router
+from app.routers.roles import router as roles_router
 from app.routers.users import router as users_router
 
 setup_logging()
@@ -50,5 +51,9 @@ app.include_router(
 )
 app.include_router(
     users_router,
+    prefix="/api/v1",
+)
+app.include_router(
+    roles_router,
     prefix="/api/v1",
 )

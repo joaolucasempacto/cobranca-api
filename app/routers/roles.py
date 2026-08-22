@@ -46,6 +46,19 @@ def create_role(
     return RoleResponse.model_validate(role)
 
 
+@router.get("/{role_id}", response_model=RoleResponse)
+def get_role(
+    role_id: UUID,
+    role_service: Annotated[RoleService, Depends(get_role_service)],
+    _current_user: Annotated[
+        User,
+        Depends(require_permission("roles:read")),
+    ],
+) -> RoleResponse:
+    role = role_service.get_by_id(role_id)
+    return RoleResponse.model_validate(role)
+
+
 @router.get(
     "/{role_id}/permissions",
     response_model=list[PermissionResponse],

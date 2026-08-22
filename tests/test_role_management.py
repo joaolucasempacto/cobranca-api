@@ -5,7 +5,7 @@ from unittest.mock import Mock
 from uuid import uuid4
 
 from app.exceptions.base import ConflictError
-from app.routers.roles import create_role, list_roles, router
+from app.routers.roles import create_role, get_role, list_roles, router
 from app.schemas.role import RoleCreate
 from app.services.role_service import RoleService
 
@@ -73,6 +73,25 @@ class RoleManagementTests(TestCase):
         )
         service.list_roles.assert_called_once_with(offset=0, limit=50)
 
+    def test_router_delegates_role_detail(self) -> None:
+        now = datetime.now(timezone.utc)
+        role_id = uuid4()
+        role = SimpleNamespace(
+            id=role_id,
+            name="admin",
+            description="Administradores",
+            created_at=now,
+            updated_at=now,
+        )
+        service = Mock()
+        service.get_by_id.return_value = role
+
+        response = get_role(role_id, service, Mock())
+
+        self.assertEqual(response.id, role_id)
+        self.assertEqual(response.name, "admin")
+        service.get_by_id.assert_called_once_with(role_id)
+
     def test_router_exposes_role_management_routes(self) -> None:
         routes = {
             (route.path, tuple(sorted(route.methods or set())))
@@ -81,3 +100,4 @@ class RoleManagementTests(TestCase):
 
         self.assertIn(("/roles", ("GET",)), routes)
         self.assertIn(("/roles", ("POST",)), routes)
+        self.assertIn(("/roles/{role_id}", ("GET",)), routes)

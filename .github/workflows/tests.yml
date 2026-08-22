@@ -1,0 +1,44 @@
+name: Test suite
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    env:
+      PROJECT_NAME: cobranca-api
+      ENVIRONMENT: test
+      POSTGRES_USER: cobranca
+      POSTGRES_PASSWORD: cobranca
+      POSTGRES_DB: cobranca_test
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: "5432"
+      DATABASE_URL: postgresql+psycopg://cobranca:cobranca@localhost:5432/cobranca_test
+      JWT_SECRET_KEY: test-only-secret-key
+      JWT_ALGORITHM: HS256
+      JWT_ACCESS_TOKEN_EXPIRE_MINUTES: "15"
+      JWT_REFRESH_TOKEN_EXPIRE_DAYS: "7"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Compile application and tests
+        run: python -m compileall -q app tests
+
+      - name: Run unit test suite
+        run: python -m unittest discover -s tests -p "test_*.py" -v

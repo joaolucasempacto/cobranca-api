@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class PermissionCreate(BaseModel):
@@ -9,6 +9,19 @@ class PermissionCreate(BaseModel):
 
     code: str = Field(min_length=1, max_length=100)
     description: str | None = Field(default=None, max_length=255)
+
+
+class PermissionUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    code: str | None = Field(default=None, min_length=1, max_length=100)
+    description: str | None = Field(default=None, max_length=255)
+
+    @model_validator(mode="after")
+    def require_update_value(self) -> "PermissionUpdate":
+        if self.code is None and self.description is None:
+            raise ValueError("Informe ao menos um campo para atualização")
+        return self
 
 
 class PermissionResponse(BaseModel):

@@ -25,6 +25,27 @@ class PermissionService:
         self._uow.commit()
         return added_permission
 
+    def update(
+        self,
+        permission_id: UUID,
+        code: str | None = None,
+        description: str | None = None,
+    ) -> Permission:
+        permission = self.get_by_id(permission_id)
+        if (
+            code is not None
+            and code != permission.code
+            and self._uow.permissions.exists_by_code(code)
+        ):
+            raise ConflictError("Permissão já cadastrada")
+
+        permission.update_details(
+            code=code,
+            description=description,
+        )
+        self._uow.commit()
+        return permission
+
     def get_by_id(self, permission_id: UUID) -> Permission:
         permission = self._uow.permissions.get_by_id(permission_id)
         if permission is None:

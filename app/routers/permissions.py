@@ -5,7 +5,11 @@ from fastapi import APIRouter, Depends, Query, status
 
 from app.dependencies import get_permission_service, require_permission
 from app.models.user import User
-from app.schemas.permission import PermissionCreate, PermissionResponse
+from app.schemas.permission import (
+    PermissionCreate,
+    PermissionResponse,
+    PermissionUpdate,
+)
 from app.services.permission_service import PermissionService
 
 router = APIRouter(prefix="/permissions", tags=["permissions"])
@@ -67,6 +71,27 @@ def create_permission(
     ],
 ) -> PermissionResponse:
     permission = permission_service.create(
+        code=payload.code,
+        description=payload.description,
+    )
+    return PermissionResponse.model_validate(permission)
+
+
+@router.patch("/{permission_id}", response_model=PermissionResponse)
+def update_permission(
+    permission_id: UUID,
+    payload: PermissionUpdate,
+    permission_service: Annotated[
+        PermissionService,
+        Depends(get_permission_service),
+    ],
+    _current_user: Annotated[
+        User,
+        Depends(require_permission("permissions:write")),
+    ],
+) -> PermissionResponse:
+    permission = permission_service.update(
+        permission_id=permission_id,
         code=payload.code,
         description=payload.description,
     )

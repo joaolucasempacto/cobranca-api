@@ -19,3 +19,13 @@ class Permission(AuditMixin, Base):
         nullable=True,
         default=None,
     )
+
+    def update_details(
+        self,
+        code: str | None = None,
+        description: str | None = None,
+    ) -> None:
+        if code is not None:
+            self.code = code
+        if description is not None:
+            self.description = description

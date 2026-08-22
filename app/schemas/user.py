@@ -1,13 +1,13 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
 
 
 class UserCreate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    email: str = Field(min_length=3, max_length=320)
+    email: EmailStr
     password: str = Field(min_length=1, max_length=128)
     is_active: bool = True
 
@@ -15,7 +15,7 @@ class UserCreate(BaseModel):
 class UserUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    email: str | None = Field(default=None, min_length=3, max_length=320)
+    email: EmailStr | None = None
     password: str | None = Field(default=None, min_length=1, max_length=128)
     is_active: bool | None = None
 

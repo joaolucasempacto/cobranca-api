@@ -21,7 +21,10 @@ class UserUpdate(BaseModel):
 
     @model_validator(mode="after")
     def require_change(self) -> "UserUpdate":
-        if not self.model_fields_set:
+        if not any(
+            value is not None
+            for value in (self.email, self.password, self.is_active)
+        ):
             raise ValueError("Informe ao menos um campo para atualização")
         return self
 

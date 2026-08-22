@@ -62,6 +62,10 @@ class UserUpdateTests(TestCase):
         with self.assertRaises(ValidationError):
             UserUpdate()
 
+    def test_schema_rejects_null_only_update(self) -> None:
+        with self.assertRaises(ValidationError):
+            UserUpdate(email=None, password=None, is_active=None)
+
     def test_router_delegates_to_service(self) -> None:
         user_id = uuid4()
         now = datetime.now(timezone.utc)

@@ -49,11 +49,14 @@ jobs:
           python-version: "3.12"
           cache: pip
 
-      - name: Install dependencies
-        run: python -m pip install -r requirements.txt
+      - name: Install development dependencies
+        run: python -m pip install -r requirements-dev.txt
 
       - name: Compile application and tests
         run: python -m compileall -q app tests
+
+      - name: Check PEP8 and Python lint
+        run: ruff check app tests --select E,W,F --ignore E501
 
       - name: Apply database migrations
         run: alembic upgrade head

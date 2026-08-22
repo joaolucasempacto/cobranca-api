@@ -4,12 +4,6 @@ on:
   push:
     branches:
       - main
-    paths:
-      - "app/database/migrations/**"
-      - "app/models/**"
-      - "alembic.ini"
-      - "requirements.txt"
-      - ".github/workflows/migration-cycle.yml"
 
 jobs:
   migration-cycle:

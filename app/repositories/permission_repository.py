@@ -35,10 +35,7 @@ class PermissionRepository:
         return self._session.scalar(statement)
 
     def exists_by_code(self, code: str) -> bool:
-        statement = select(Permission.id).where(
-            Permission.code == code,
-            Permission.deleted_at.is_(None),
-        )
+        statement = select(Permission.id).where(Permission.code == code)
         return self._session.scalar(statement) is not None
 
     def add(self, permission: Permission) -> Permission:

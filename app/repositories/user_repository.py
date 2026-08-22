@@ -59,10 +59,7 @@ class UserRepository:
         return self._session.scalar(statement)
 
     def exists_by_email(self, email: str) -> bool:
-        statement = select(User.id).where(
-            User.email == email,
-            User.deleted_at.is_(None),
-        )
+        statement = select(User.id).where(User.email == email)
         return self._session.scalar(statement) is not None
 
     def active_exists_by_email(self, email: str) -> bool:

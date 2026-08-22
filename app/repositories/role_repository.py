@@ -37,10 +37,7 @@ class RoleRepository:
         return self._session.scalar(statement)
 
     def exists_by_name(self, name: str) -> bool:
-        statement = select(Role.id).where(
-            Role.name == name,
-            Role.deleted_at.is_(None),
-        )
+        statement = select(Role.id).where(Role.name == name)
         return self._session.scalar(statement) is not None
 
     def list_permissions(self, role_id: UUID) -> list[Permission]:

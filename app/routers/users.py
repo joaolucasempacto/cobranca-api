@@ -9,7 +9,7 @@ from app.dependencies import (
     require_permission,
 )
 from app.models.user import User
-from app.schemas.user import UserCreate, UserResponse
+from app.schemas.user import UserCreate, UserResponse, UserUpdate
 from app.services.user_service import UserService
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -63,6 +63,25 @@ def create_user(
     ],
 ) -> UserResponse:
     user = user_service.create(
+        email=payload.email,
+        password=payload.password,
+        is_active=payload.is_active,
+    )
+    return UserResponse.model_validate(user)
+
+
+@router.patch("/{user_id}", response_model=UserResponse)
+def update_user(
+    user_id: UUID,
+    payload: UserUpdate,
+    user_service: Annotated[UserService, Depends(get_user_service)],
+    _current_user: Annotated[
+        User,
+        Depends(require_permission("users:write")),
+    ],
+) -> UserResponse:
+    user = user_service.update(
+        user_id,
         email=payload.email,
         password=payload.password,
         is_active=payload.is_active,

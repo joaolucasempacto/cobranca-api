@@ -67,6 +67,30 @@ class UserService:
         self._uow.commit()
         return added_user
 
+    def update(
+        self,
+        user_id: UUID,
+        *,
+        email: str | None = None,
+        password: str | None = None,
+        is_active: bool | None = None,
+    ) -> User:
+        user = self.get_by_id(user_id)
+
+        if email is not None and email != user.email:
+            if self._uow.users.exists_by_email(email):
+                raise ConflictError("E-mail já cadastrado")
+            user.email = email
+
+        if password is not None:
+            user.password_hash = hash_password(password)
+
+        if is_active is not None:
+            user.is_active = is_active
+
+        self._uow.commit()
+        return user
+
     def add(self, user: User) -> User:
         added_user = self._uow.users.add(user)
         self._uow.commit()

@@ -60,3 +60,18 @@ jobs:
 
       - name: Run test suite
         run: python -m unittest discover -s tests -p "test_*.py" -v
+
+  docker-packaging:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate Compose configuration
+        env:
+          JWT_SECRET_KEY: test-only-secret-key
+        run: docker compose config --quiet
+
+      - name: Build API image
+        run: docker build --tag cobranca-api:ci .

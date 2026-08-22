@@ -1,6 +1,7 @@
 from uuid import UUID
 
 from app.exceptions.base import ConflictError, NotFoundError
+from app.models.permission import Permission
 from app.models.role import Role
 from app.repositories.unit_of_work import UnitOfWork
 
@@ -35,6 +36,38 @@ class RoleService:
 
     def role_exists(self, name: str) -> bool:
         return self._uow.roles.exists_by_name(name)
+
+    def list_permissions(self, role_id: UUID) -> list[Permission]:
+        self.get_by_id(role_id)
+        return self._uow.roles.list_permissions(role_id)
+
+    def grant_permission(
+        self,
+        role_id: UUID,
+        permission_id: UUID,
+    ) -> None:
+        self.get_by_id(role_id)
+        if self._uow.permissions.get_by_id(permission_id) is None:
+            raise NotFoundError("Permissão não encontrada")
+        if self._uow.roles.has_permission(role_id, permission_id):
+            raise ConflictError("Permissão já atribuída ao perfil")
+
+        self._uow.roles.add_permission(role_id, permission_id)
+        self._uow.commit()
+
+    def revoke_permission(
+        self,
+        role_id: UUID,
+        permission_id: UUID,
+    ) -> None:
+        self.get_by_id(role_id)
+        if self._uow.permissions.get_by_id(permission_id) is None:
+            raise NotFoundError("Permissão não encontrada")
+        if not self._uow.roles.has_permission(role_id, permission_id):
+            raise NotFoundError("Permissão não atribuída ao perfil")
+
+        self._uow.roles.remove_permission(role_id, permission_id)
+        self._uow.commit()
 
     def add(self, role: Role) -> Role:
         added_role = self._uow.roles.add(role)

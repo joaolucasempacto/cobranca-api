@@ -77,6 +77,22 @@ def update_role(
     return RoleResponse.model_validate(role)
 
 
+@router.delete(
+    "/{role_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def delete_role(
+    role_id: UUID,
+    role_service: Annotated[RoleService, Depends(get_role_service)],
+    _current_user: Annotated[
+        User,
+        Depends(require_permission("roles:write")),
+    ],
+) -> Response:
+    role_service.delete(role_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
 @router.get(
     "/{role_id}/permissions",
     response_model=list[PermissionResponse],

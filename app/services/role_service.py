@@ -40,6 +40,11 @@ class RoleService:
         self._uow.commit()
         return role
 
+    def delete(self, role_id: UUID) -> None:
+        role = self.get_by_id(role_id)
+        role.soft_delete()
+        self._uow.commit()
+
     def get_by_id(self, role_id: UUID) -> Role:
         role = self._uow.roles.get_by_id(role_id)
         if role is None:

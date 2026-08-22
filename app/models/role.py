@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -29,3 +31,6 @@ class Role(AuditMixin, Base):
             self.name = name
         if description is not None:
             self.description = description
+
+    def soft_delete(self) -> None:
+        self.deleted_at = datetime.now(timezone.utc)

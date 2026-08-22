@@ -3,6 +3,9 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.models.associations import role_permissions, user_roles
+from app.models.permission import Permission
+from app.models.role import Role
 from app.models.user import User
 
 
@@ -67,6 +70,28 @@ class UserRepository:
             User.email == email,
             User.is_active.is_(True),
             User.deleted_at.is_(None),
+        )
+        return self._session.scalar(statement) is not None
+
+    def has_permission(self, user_id: UUID, permission_code: str) -> bool:
+        statement = (
+            select(Permission.id)
+            .select_from(user_roles)
+            .join(Role, Role.id == user_roles.c.role_id)
+            .join(
+                role_permissions,
+                role_permissions.c.role_id == Role.id,
+            )
+            .join(
+                Permission,
+                Permission.id == role_permissions.c.permission_id,
+            )
+            .where(
+                user_roles.c.user_id == user_id,
+                Role.deleted_at.is_(None),
+                Permission.code == permission_code,
+                Permission.deleted_at.is_(None),
+            )
         )
         return self._session.scalar(statement) is not None
 

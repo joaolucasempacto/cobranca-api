@@ -1,4 +1,5 @@
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, status
 
@@ -33,6 +34,19 @@ def list_users(
 ) -> list[UserResponse]:
     users = user_service.list_users(offset=offset, limit=limit)
     return [UserResponse.model_validate(user) for user in users]
+
+
+@router.get("/{user_id}", response_model=UserResponse)
+def get_user_by_id(
+    user_id: UUID,
+    user_service: Annotated[UserService, Depends(get_user_service)],
+    _current_user: Annotated[
+        User,
+        Depends(require_permission("users:read")),
+    ],
+) -> UserResponse:
+    user = user_service.get_by_id(user_id)
+    return UserResponse.model_validate(user)
 
 
 @router.post(

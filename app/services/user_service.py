@@ -1,6 +1,7 @@
 from uuid import UUID
 
-from app.exceptions.base import NotFoundError
+from app.core.security import hash_password
+from app.exceptions.base import ConflictError, NotFoundError
 from app.models.user import User
 from app.repositories.unit_of_work import UnitOfWork
 
@@ -44,6 +45,24 @@ class UserService:
 
     def active_email_exists(self, email: str) -> bool:
         return self._uow.users.active_exists_by_email(email)
+
+    def create(
+        self,
+        email: str,
+        password: str,
+        is_active: bool = True,
+    ) -> User:
+        if self._uow.users.exists_by_email(email):
+            raise ConflictError("E-mail já cadastrado")
+
+        user = User(
+            email=email,
+            password_hash=hash_password(password),
+            is_active=is_active,
+        )
+        added_user = self._uow.users.add(user)
+        self._uow.commit()
+        return added_user
 
     def add(self, user: User) -> User:
         added_user = self._uow.users.add(user)

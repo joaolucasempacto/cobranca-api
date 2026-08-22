@@ -12,6 +12,7 @@ from app.models.user import User
 from app.repositories.unit_of_work import UnitOfWork
 from app.services.auth_service import AuthService
 from app.services.authorization_service import AuthorizationService
+from app.services.user_service import UserService
 
 bearer_scheme = HTTPBearer(auto_error=False)
 
@@ -47,6 +48,12 @@ def get_authorization_service(
     uow: Annotated[UnitOfWork, Depends(get_unit_of_work)],
 ) -> AuthorizationService:
     return AuthorizationService(uow)
+
+
+def get_user_service(
+    uow: Annotated[UnitOfWork, Depends(get_unit_of_work)],
+) -> UserService:
+    return UserService(uow)
 
 
 def get_current_user(

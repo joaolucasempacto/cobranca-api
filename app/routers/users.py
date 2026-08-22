@@ -9,6 +9,7 @@ from app.dependencies import (
     require_permission,
 )
 from app.models.user import User
+from app.schemas.role import RoleResponse
 from app.schemas.user import UserCreate, UserResponse, UserUpdate
 from app.services.user_service import UserService
 
@@ -34,6 +35,51 @@ def list_users(
 ) -> list[UserResponse]:
     users = user_service.list_users(offset=offset, limit=limit)
     return [UserResponse.model_validate(user) for user in users]
+
+
+@router.get("/{user_id}/roles", response_model=list[RoleResponse])
+def list_user_roles(
+    user_id: UUID,
+    user_service: Annotated[UserService, Depends(get_user_service)],
+    _current_user: Annotated[
+        User,
+        Depends(require_permission("users:read")),
+    ],
+) -> list[RoleResponse]:
+    roles = user_service.list_roles(user_id)
+    return [RoleResponse.model_validate(role) for role in roles]
+
+
+@router.put(
+    "/{user_id}/roles/{role_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def grant_user_role(
+    user_id: UUID,
+    role_id: UUID,
+    user_service: Annotated[UserService, Depends(get_user_service)],
+    _current_user: Annotated[
+        User,
+        Depends(require_permission("users:write")),
+    ],
+) -> None:
+    user_service.grant_role(user_id, role_id)
+
+
+@router.delete(
+    "/{user_id}/roles/{role_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def revoke_user_role(
+    user_id: UUID,
+    role_id: UUID,
+    user_service: Annotated[UserService, Depends(get_user_service)],
+    _current_user: Annotated[
+        User,
+        Depends(require_permission("users:write")),
+    ],
+) -> None:
+    user_service.revoke_role(user_id, role_id)
 
 
 @router.get("/{user_id}", response_model=UserResponse)

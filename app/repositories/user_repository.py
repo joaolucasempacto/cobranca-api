@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import delete, insert, select
 from sqlalchemy.orm import Session
 
 from app.models.associations import role_permissions, user_roles
@@ -78,10 +78,7 @@ class UserRepository:
             select(Permission.id)
             .select_from(user_roles)
             .join(Role, Role.id == user_roles.c.role_id)
-            .join(
-                role_permissions,
-                role_permissions.c.role_id == Role.id,
-            )
+            .join(role_permissions, role_permissions.c.role_id == Role.id)
             .join(
                 Permission,
                 Permission.id == role_permissions.c.permission_id,
@@ -94,6 +91,40 @@ class UserRepository:
             )
         )
         return self._session.scalar(statement) is not None
+
+    def list_roles(self, user_id: UUID) -> list[Role]:
+        statement = (
+            select(Role)
+            .join(user_roles, user_roles.c.role_id == Role.id)
+            .where(
+                user_roles.c.user_id == user_id,
+                Role.deleted_at.is_(None),
+            )
+            .order_by(Role.name.asc())
+        )
+        return list(self._session.scalars(statement).all())
+
+    def has_role(self, user_id: UUID, role_id: UUID) -> bool:
+        statement = select(user_roles.c.role_id).where(
+            user_roles.c.user_id == user_id,
+            user_roles.c.role_id == role_id,
+        )
+        return self._session.scalar(statement) is not None
+
+    def add_role(self, user_id: UUID, role_id: UUID) -> None:
+        self._session.execute(
+            insert(user_roles).values(user_id=user_id, role_id=role_id)
+        )
+        self._session.flush()
+
+    def remove_role(self, user_id: UUID, role_id: UUID) -> None:
+        self._session.execute(
+            delete(user_roles).where(
+                user_roles.c.user_id == user_id,
+                user_roles.c.role_id == role_id,
+            )
+        )
+        self._session.flush()
 
     def list(self, offset: int, limit: int) -> list[User]:
         statement = (

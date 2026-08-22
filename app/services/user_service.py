@@ -2,6 +2,7 @@ from uuid import UUID
 
 from app.core.security import hash_password
 from app.exceptions.base import ConflictError, NotFoundError
+from app.models.role import Role
 from app.models.user import User
 from app.repositories.unit_of_work import UnitOfWork
 
@@ -49,6 +50,28 @@ class UserService:
     def list_users(self, offset: int, limit: int) -> list[User]:
         return self._uow.users.list(offset=offset, limit=limit)
 
+    def list_roles(self, user_id: UUID) -> list[Role]:
+        self.get_by_id(user_id)
+        return self._uow.users.list_roles(user_id)
+
+    def grant_role(self, user_id: UUID, role_id: UUID) -> None:
+        self.get_by_id(user_id)
+        if self._uow.roles.get_by_id(role_id) is None:
+            raise NotFoundError("Perfil não encontrado")
+        if self._uow.users.has_role(user_id, role_id):
+            raise ConflictError("Perfil já atribuído ao usuário")
+        self._uow.users.add_role(user_id, role_id)
+        self._uow.commit()
+
+    def revoke_role(self, user_id: UUID, role_id: UUID) -> None:
+        self.get_by_id(user_id)
+        if self._uow.roles.get_by_id(role_id) is None:
+            raise NotFoundError("Perfil não encontrado")
+        if not self._uow.users.has_role(user_id, role_id):
+            raise NotFoundError("Perfil não atribuído ao usuário")
+        self._uow.users.remove_role(user_id, role_id)
+        self._uow.commit()
+
     def create(
         self,
         email: str,
@@ -57,7 +80,6 @@ class UserService:
     ) -> User:
         if self._uow.users.exists_by_email(email):
             raise ConflictError("E-mail já cadastrado")
-
         user = User(
             email=email,
             password_hash=hash_password(password),
@@ -76,18 +98,14 @@ class UserService:
         is_active: bool | None = None,
     ) -> User:
         user = self.get_by_id(user_id)
-
         if email is not None and email != user.email:
             if self._uow.users.exists_by_email(email):
                 raise ConflictError("E-mail já cadastrado")
             user.email = email
-
         if password is not None:
             user.password_hash = hash_password(password)
-
         if is_active is not None:
             user.is_active = is_active
-
         self._uow.commit()
         return user
 

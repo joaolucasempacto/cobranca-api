@@ -7,6 +7,7 @@ from uuid import uuid4
 from app.exceptions.base import ConflictError
 from app.routers.permissions import (
     create_permission,
+    get_permission,
     list_permissions,
     router,
 )
@@ -18,7 +19,6 @@ class PermissionManagementTests(TestCase):
     def test_create_permission_rejects_duplicate_code(self) -> None:
         uow = Mock()
         uow.permissions.exists_by_code.return_value = True
-
         with self.assertRaisesRegex(
             ConflictError,
             "Permissão já cadastrada",
@@ -27,7 +27,6 @@ class PermissionManagementTests(TestCase):
                 "users:read",
                 "Ler usuários",
             )
-
         uow.permissions.add.assert_not_called()
         uow.commit.assert_not_called()
 
@@ -36,12 +35,10 @@ class PermissionManagementTests(TestCase):
         uow.permissions.exists_by_code.return_value = False
         created = Mock()
         uow.permissions.add.return_value = created
-
         result = PermissionService(uow).create(
             "users:read",
             "Ler usuários",
         )
-
         self.assertIs(result, created)
         permission = uow.permissions.add.call_args.args[0]
         self.assertEqual(permission.code, "users:read")
@@ -52,22 +49,21 @@ class PermissionManagementTests(TestCase):
         uow = Mock()
         expected = [Mock(), Mock()]
         uow.permissions.list.return_value = expected
-
         result = PermissionService(uow).list_permissions(
             offset=10,
             limit=25,
         )
-
         self.assertEqual(result, expected)
         uow.permissions.list.assert_called_once_with(
             offset=10,
             limit=25,
         )
 
-    def test_router_delegates_create_and_list(self) -> None:
+    def test_router_delegates_create_list_and_detail(self) -> None:
         now = datetime.now(timezone.utc)
+        permission_id = uuid4()
         permission = SimpleNamespace(
-            id=uuid4(),
+            id=permission_id,
             code="users:read",
             description="Ler usuários",
             created_at=now,
@@ -76,7 +72,7 @@ class PermissionManagementTests(TestCase):
         service = Mock()
         service.create.return_value = permission
         service.list_permissions.return_value = [permission]
-
+        service.get_by_id.return_value = permission
         created = create_permission(
             PermissionCreate(
                 code="users:read",
@@ -91,12 +87,17 @@ class PermissionManagementTests(TestCase):
             offset=0,
             limit=50,
         )
-
+        detailed = get_permission(
+            permission_id,
+            service,
+            Mock(),
+        )
         self.assertEqual(created.code, "users:read")
         self.assertEqual(
             [item.code for item in listed],
             ["users:read"],
         )
+        self.assertEqual(detailed.id, permission_id)
         service.create.assert_called_once_with(
             code="users:read",
             description="Ler usuários",
@@ -105,12 +106,13 @@ class PermissionManagementTests(TestCase):
             offset=0,
             limit=50,
         )
+        service.get_by_id.assert_called_once_with(permission_id)
 
     def test_router_exposes_permission_management_routes(self) -> None:
         routes = {
             (route.path, tuple(sorted(route.methods or set())))
             for route in router.routes
         }
-
         self.assertIn(("/permissions", ("GET",)), routes)
         self.assertIn(("/permissions", ("POST",)), routes)
+        self.assertIn(("/permissions/{permission_id}", ("GET",)), routes)

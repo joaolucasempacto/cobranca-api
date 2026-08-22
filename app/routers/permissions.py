@@ -1,4 +1,5 @@
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, status
 
@@ -31,6 +32,22 @@ def list_permissions(
         PermissionResponse.model_validate(permission)
         for permission in permissions
     ]
+
+
+@router.get("/{permission_id}", response_model=PermissionResponse)
+def get_permission(
+    permission_id: UUID,
+    permission_service: Annotated[
+        PermissionService,
+        Depends(get_permission_service),
+    ],
+    _current_user: Annotated[
+        User,
+        Depends(require_permission("permissions:read")),
+    ],
+) -> PermissionResponse:
+    permission = permission_service.get_by_id(permission_id)
+    return PermissionResponse.model_validate(permission)
 
 
 @router.post(

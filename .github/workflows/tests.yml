@@ -68,9 +68,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Prepare Compose environment
+        run: cp .env.example .env
+
       - name: Validate Compose configuration
-        env:
-          JWT_SECRET_KEY: test-only-secret-key
         run: docker compose config --quiet
 
       - name: Build API image

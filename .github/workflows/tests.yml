@@ -76,3 +76,23 @@ jobs:
 
       - name: Build API image
         run: docker build --tag cobranca-api:ci .
+
+      - name: Start Compose stack
+        run: docker compose up --detach --build
+
+      - name: Wait for API health
+        run: |
+          timeout 90 bash -c '
+            until curl --fail --silent http://127.0.0.1:8000/api/v1/health; do
+              sleep 2
+            done
+          '
+
+      - name: Show Compose status
+        run: docker compose ps
+
+      - name: Stop Compose stack
+        if: always()
+        run: |
+          docker compose logs api || true
+          docker compose down --volumes

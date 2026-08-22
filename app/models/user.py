@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from sqlalchemy import Boolean, String, true
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -24,3 +26,7 @@ class User(AuditMixin, Base):
         default=True,
         server_default=true(),
     )
+
+    def soft_delete(self) -> None:
+        self.is_active = False
+        self.deleted_at = datetime.now(timezone.utc)

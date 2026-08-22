@@ -87,3 +87,18 @@ def update_user(
         is_active=payload.is_active,
     )
     return UserResponse.model_validate(user)
+
+
+@router.delete(
+    "/{user_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def delete_user(
+    user_id: UUID,
+    user_service: Annotated[UserService, Depends(get_user_service)],
+    _current_user: Annotated[
+        User,
+        Depends(require_permission("users:write")),
+    ],
+) -> None:
+    user_service.delete(user_id)

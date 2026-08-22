@@ -91,6 +91,11 @@ class UserService:
         self._uow.commit()
         return user
 
+    def delete(self, user_id: UUID) -> None:
+        user = self.get_by_id(user_id)
+        user.soft_delete()
+        self._uow.commit()
+
     def add(self, user: User) -> User:
         added_user = self._uow.users.add(user)
         self._uow.commit()

@@ -19,3 +19,13 @@ class Role(AuditMixin, Base):
         nullable=True,
         default=None,
     )
+
+    def update_details(
+        self,
+        name: str | None = None,
+        description: str | None = None,
+    ) -> None:
+        if name is not None:
+            self.name = name
+        if description is not None:
+            self.description = description

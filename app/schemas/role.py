@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class RoleCreate(BaseModel):
@@ -9,6 +9,19 @@ class RoleCreate(BaseModel):
 
     name: str = Field(min_length=1, max_length=100)
     description: str | None = Field(default=None, max_length=255)
+
+
+class RoleUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: str | None = Field(default=None, min_length=1, max_length=100)
+    description: str | None = Field(default=None, max_length=255)
+
+    @model_validator(mode="after")
+    def require_update_value(self) -> "RoleUpdate":
+        if self.name is None and self.description is None:
+            raise ValueError("Informe ao menos um campo para atualização")
+        return self
 
 
 class RoleResponse(BaseModel):

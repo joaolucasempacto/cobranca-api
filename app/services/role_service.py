@@ -22,6 +22,24 @@ class RoleService:
         self._uow.commit()
         return added_role
 
+    def update(
+        self,
+        role_id: UUID,
+        name: str | None = None,
+        description: str | None = None,
+    ) -> Role:
+        role = self.get_by_id(role_id)
+        if (
+            name is not None
+            and name != role.name
+            and self._uow.roles.exists_by_name(name)
+        ):
+            raise ConflictError("Perfil já cadastrado")
+
+        role.update_details(name=name, description=description)
+        self._uow.commit()
+        return role
+
     def get_by_id(self, role_id: UUID) -> Role:
         role = self._uow.roles.get_by_id(role_id)
         if role is None:

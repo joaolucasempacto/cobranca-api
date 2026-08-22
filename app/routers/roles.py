@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, Query, Response, status
 from app.dependencies import get_role_service, require_permission
 from app.models.user import User
 from app.schemas.permission import PermissionResponse
-from app.schemas.role import RoleCreate, RoleResponse
+from app.schemas.role import RoleCreate, RoleResponse, RoleUpdate
 from app.services.role_service import RoleService
 
 router = APIRouter(prefix="/roles", tags=["roles"])
@@ -56,6 +56,24 @@ def get_role(
     ],
 ) -> RoleResponse:
     role = role_service.get_by_id(role_id)
+    return RoleResponse.model_validate(role)
+
+
+@router.patch("/{role_id}", response_model=RoleResponse)
+def update_role(
+    role_id: UUID,
+    payload: RoleUpdate,
+    role_service: Annotated[RoleService, Depends(get_role_service)],
+    _current_user: Annotated[
+        User,
+        Depends(require_permission("roles:write")),
+    ],
+) -> RoleResponse:
+    role = role_service.update(
+        role_id=role_id,
+        name=payload.name,
+        description=payload.description,
+    )
     return RoleResponse.model_validate(role)
 
 

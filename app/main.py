@@ -12,6 +12,7 @@ from app.exceptions.handlers import (
     app_error_handler,
     unhandled_exception_handler,
 )
+from app.routers.auth import router as auth_router
 from app.routers.health import router as health_router
 
 setup_logging()
@@ -40,5 +41,9 @@ app.add_exception_handler(Exception, unhandled_exception_handler)
 
 app.include_router(
     health_router,
+    prefix="/api/v1",
+)
+app.include_router(
+    auth_router,
     prefix="/api/v1",
 )

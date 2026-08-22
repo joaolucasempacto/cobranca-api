@@ -10,6 +10,16 @@ class PermissionRepository:
     def __init__(self, session: Session) -> None:
         self._session = session
 
+    def list(self, offset: int, limit: int) -> list[Permission]:
+        statement = (
+            select(Permission)
+            .where(Permission.deleted_at.is_(None))
+            .order_by(Permission.created_at.desc())
+            .offset(offset)
+            .limit(limit)
+        )
+        return list(self._session.scalars(statement).all())
+
     def get_by_id(self, permission_id: UUID) -> Permission | None:
         statement = select(Permission).where(
             Permission.id == permission_id,

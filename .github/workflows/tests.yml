@@ -10,6 +10,21 @@ jobs:
   tests:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: cobranca
+          POSTGRES_PASSWORD: cobranca
+          POSTGRES_DB: cobranca_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U cobranca -d cobranca_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     env:
       PROJECT_NAME: cobranca-api
       ENVIRONMENT: test
@@ -40,5 +55,8 @@ jobs:
       - name: Compile application and tests
         run: python -m compileall -q app tests
 
-      - name: Run unit test suite
+      - name: Apply database migrations
+        run: alembic upgrade head
+
+      - name: Run test suite
         run: python -m unittest discover -s tests -p "test_*.py" -v

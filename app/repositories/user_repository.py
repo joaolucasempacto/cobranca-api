@@ -95,6 +95,16 @@ class UserRepository:
         )
         return self._session.scalar(statement) is not None
 
+    def list(self, offset: int, limit: int) -> list[User]:
+        statement = (
+            select(User)
+            .where(User.deleted_at.is_(None))
+            .order_by(User.created_at.desc())
+            .offset(offset)
+            .limit(limit)
+        )
+        return list(self._session.scalars(statement).all())
+
     def add(self, user: User) -> User:
         self._session.add(user)
         self._session.flush()

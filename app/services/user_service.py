@@ -46,6 +46,9 @@ class UserService:
     def active_email_exists(self, email: str) -> bool:
         return self._uow.users.active_exists_by_email(email)
 
+    def list_users(self, offset: int, limit: int) -> list[User]:
+        return self._uow.users.list(offset=offset, limit=limit)
+
     def create(
         self,
         email: str,

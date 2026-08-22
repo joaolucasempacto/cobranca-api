@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 
 from app.dependencies import (
     get_current_user,
@@ -19,6 +19,20 @@ def get_me(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> UserResponse:
     return UserResponse.model_validate(current_user)
+
+
+@router.get("", response_model=list[UserResponse])
+def list_users(
+    user_service: Annotated[UserService, Depends(get_user_service)],
+    _current_user: Annotated[
+        User,
+        Depends(require_permission("users:read")),
+    ],
+    offset: Annotated[int, Query(ge=0)] = 0,
+    limit: Annotated[int, Query(ge=1, le=100)] = 50,
+) -> list[UserResponse]:
+    users = user_service.list_users(offset=offset, limit=limit)
+    return [UserResponse.model_validate(user) for user in users]
 
 
 @router.post(

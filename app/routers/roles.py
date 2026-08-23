@@ -73,6 +73,7 @@ def update_role(
         role_id=role_id,
         name=payload.name,
         description=payload.description,
+        description_provided="description" in payload.model_fields_set,
     )
     return RoleResponse.model_validate(role)
 

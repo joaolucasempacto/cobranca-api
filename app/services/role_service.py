@@ -27,6 +27,7 @@ class RoleService:
         role_id: UUID,
         name: str | None = None,
         description: str | None = None,
+        description_provided: bool = False,
     ) -> Role:
         role = self.get_by_id(role_id)
         if (
@@ -36,7 +37,11 @@ class RoleService:
         ):
             raise ConflictError("Perfil já cadastrado")
 
-        role.update_details(name=name, description=description)
+        role.update_details(
+            name=name,
+            description=description,
+            description_provided=description_provided,
+        )
         self._uow.commit()
         return role
 

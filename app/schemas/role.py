@@ -19,7 +19,8 @@ class RoleUpdate(BaseModel):
 
     @model_validator(mode="after")
     def require_update_value(self) -> "RoleUpdate":
-        if self.name is None and self.description is None:
+        description_provided = "description" in self.model_fields_set
+        if self.name is None and not description_provided:
             raise ValueError("Informe ao menos um campo para atualização")
         return self
 

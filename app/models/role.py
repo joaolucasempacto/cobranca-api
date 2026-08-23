@@ -26,10 +26,11 @@ class Role(AuditMixin, Base):
         self,
         name: str | None = None,
         description: str | None = None,
+        description_provided: bool = False,
     ) -> None:
         if name is not None:
             self.name = name
-        if description is not None:
+        if description_provided:
             self.description = description
 
     def soft_delete(self) -> None:

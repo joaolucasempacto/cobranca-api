@@ -137,10 +137,10 @@ Os endpoints administrativos são protegidos por autenticação Bearer e permiss
 
 ## Testes
 
-Instale as dependências:
+Instale as dependências de desenvolvimento, que incluem as dependências de runtime e as ferramentas usadas pela suíte:
 
 ```bash
-python -m pip install -r requirements.txt
+python -m pip install -r requirements-dev.txt
 ```
 
 Execute a suíte:

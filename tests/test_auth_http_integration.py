@@ -54,7 +54,7 @@ class AuthenticationHTTPIntegrationTests(TestCase):
             body["refresh_token"],
         )
 
-    def test_refresh_logout_and_revocation_flow(self) -> None:
+    def test_refresh_rotates_token_and_logout_revokes_new_token(self) -> None:
         with TestClient(app) as client:
             login_response = client.post(
                 "/api/v1/auth/login",
@@ -76,6 +76,15 @@ class AuthenticationHTTPIntegrationTests(TestCase):
             self.assertNotEqual(
                 refreshed_body["access_token"],
                 refreshed_refresh_token,
+            )
+
+            reused_initial_refresh_response = client.post(
+                "/api/v1/auth/refresh",
+                json={"refresh_token": initial_refresh_token},
+            )
+            self.assertEqual(
+                reused_initial_refresh_response.status_code,
+                401,
             )
 
             logout_response = client.post(

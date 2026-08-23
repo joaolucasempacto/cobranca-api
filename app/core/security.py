@@ -9,9 +9,14 @@ _SCRYPT_R = 8
 _SCRYPT_P = 1
 _SALT_BYTES = 16
 _KEY_BYTES = 32
+_PASSWORD_MIN_LENGTH = 8
+_PASSWORD_MAX_LENGTH = 128
 
 
 def hash_password(password: str) -> str:
+    if not _PASSWORD_MIN_LENGTH <= len(password) <= _PASSWORD_MAX_LENGTH:
+        raise ValueError("A senha deve ter entre 8 e 128 caracteres")
+
     salt = os.urandom(_SALT_BYTES)
     derived_key = hashlib.scrypt(
         password.encode("utf-8"),

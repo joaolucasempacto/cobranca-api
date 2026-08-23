@@ -20,6 +20,15 @@ class PasswordSecurityTests(TestCase):
 
         self.assertNotEqual(first_hash, second_hash)
 
+    def test_hash_password_rejects_password_outside_policy(self) -> None:
+        for password in ("short", "x" * 129):
+            with self.subTest(length=len(password)):
+                with self.assertRaisesRegex(
+                    ValueError,
+                    "entre 8 e 128 caracteres",
+                ):
+                    hash_password(password)
+
     def test_verify_password_accepts_correct_password(self) -> None:
         password = "SenhaForte#2026"
         password_hash = hash_password(password)

@@ -74,6 +74,14 @@ def decode_token(
     except InvalidTokenError as exc:
         raise UnauthorizedError("Token inválido ou expirado") from exc
 
+    issued_at = payload.get("iat")
+    expires_at = payload.get("exp")
+    if (
+        type(issued_at) not in (int, float)
+        or type(expires_at) not in (int, float)
+    ):
+        raise UnauthorizedError("Token inválido ou expirado")
+
     token_type = payload.get("type")
     if token_type not in ("access", "refresh"):
         raise UnauthorizedError("Tipo de token inválido")

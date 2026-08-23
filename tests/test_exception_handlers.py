@@ -39,6 +39,18 @@ class ExceptionHandlerTests(IsolatedAsyncioTestCase):
                     {"detail": error.message},
                 )
 
+    async def test_unauthorized_error_sets_bearer_challenge(self) -> None:
+        response = await app_error_handler(
+            self.request,
+            UnauthorizedError("invalid token"),
+        )
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(
+            response.headers["www-authenticate"],
+            "Bearer",
+        )
+
     async def test_unhandled_errors_hide_internal_details(self) -> None:
         response = await unhandled_exception_handler(
             self.request,

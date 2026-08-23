@@ -38,9 +38,14 @@ async def app_error_handler(request: Request, exc: AppError) -> JSONResponse:
         request.url.path,
     )
 
+    headers = None
+    if isinstance(exc, UnauthorizedError):
+        headers = {"WWW-Authenticate": "Bearer"}
+
     return JSONResponse(
         status_code=status_code,
         content={"detail": exc.message},
+        headers=headers,
     )
 
 

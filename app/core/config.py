@@ -1,7 +1,10 @@
 from functools import lru_cache
 
-from pydantic import Field
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+JWT_SECRET_PLACEHOLDER = "change-this-to-a-long-random-secret"
 
 
 class Settings(BaseSettings):
@@ -26,6 +29,17 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=15, gt=0)
     JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = Field(default=7, gt=0)
+
+    @model_validator(mode="after")
+    def reject_production_placeholder_secret(self) -> "Settings":
+        if (
+            self.ENVIRONMENT.lower() in {"production", "prod"}
+            and self.JWT_SECRET_KEY == JWT_SECRET_PLACEHOLDER
+        ):
+            raise ValueError(
+                "JWT_SECRET_KEY padrão não pode ser usado em produção"
+            )
+        return self
 
 
 @lru_cache

@@ -46,6 +46,11 @@ class PermissionService:
         self._uow.commit()
         return permission
 
+    def delete(self, permission_id: UUID) -> None:
+        permission = self.get_by_id(permission_id)
+        permission.soft_delete()
+        self._uow.commit()
+
     def get_by_id(self, permission_id: UUID) -> Permission:
         permission = self._uow.permissions.get_by_id(permission_id)
         if permission is None:

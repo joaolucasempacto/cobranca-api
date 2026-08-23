@@ -1,7 +1,7 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Query, Response, status
 
 from app.dependencies import get_permission_service, require_permission
 from app.models.user import User
@@ -96,3 +96,22 @@ def update_permission(
         description=payload.description,
     )
     return PermissionResponse.model_validate(permission)
+
+
+@router.delete(
+    "/{permission_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def delete_permission(
+    permission_id: UUID,
+    permission_service: Annotated[
+        PermissionService,
+        Depends(get_permission_service),
+    ],
+    _current_user: Annotated[
+        User,
+        Depends(require_permission("permissions:write")),
+    ],
+) -> Response:
+    permission_service.delete(permission_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

@@ -94,6 +94,7 @@ def update_permission(
         permission_id=permission_id,
         code=payload.code,
         description=payload.description,
+        description_provided="description" in payload.model_fields_set,
     )
     return PermissionResponse.model_validate(permission)
 

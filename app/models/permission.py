@@ -26,10 +26,11 @@ class Permission(AuditMixin, Base):
         self,
         code: str | None = None,
         description: str | None = None,
+        description_provided: bool = False,
     ) -> None:
         if code is not None:
             self.code = code
-        if description is not None:
+        if description_provided:
             self.description = description
 
     def soft_delete(self) -> None:

@@ -30,6 +30,7 @@ class PermissionService:
         permission_id: UUID,
         code: str | None = None,
         description: str | None = None,
+        description_provided: bool = False,
     ) -> Permission:
         permission = self.get_by_id(permission_id)
         if (
@@ -42,6 +43,7 @@ class PermissionService:
         permission.update_details(
             code=code,
             description=description,
+            description_provided=description_provided,
         )
         self._uow.commit()
         return permission

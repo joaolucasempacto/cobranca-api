@@ -1,5 +1,5 @@
 from unittest import TestCase
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from sqlalchemy import delete, select
 
@@ -22,12 +22,24 @@ class BootstrapPostgreSQLIntegrationTests(TestCase):
         self.session = SessionLocal()
         self.email = f"bootstrap-{uuid4()}@example.com"
         self.password = "integration-bootstrap-secret"
-        self.user_id = None
-        self.role_id = None
-        self.permission_ids: list = []
+        self.user_id: UUID | None = None
+        self.role_id: UUID | None = None
+        self.permission_ids_by_code: dict[str, UUID] = {}
 
         self.existing_role_id = self.session.scalar(
             select(Role.id).where(Role.name == ADMIN_ROLE_NAME)
+        )
+        self.existing_role_permission_ids = (
+            set(
+                self.session.scalars(
+                    select(role_permissions.c.permission_id).where(
+                        role_permissions.c.role_id
+                        == self.existing_role_id
+                    )
+                ).all()
+            )
+            if self.existing_role_id is not None
+            else set()
         )
         self.existing_permission_ids = {
             code: self.session.scalar(
@@ -49,23 +61,38 @@ class BootstrapPostgreSQLIntegrationTests(TestCase):
                 delete(User).where(User.id == self.user_id)
             )
 
-        if self.role_id is not None and self.existing_role_id is None:
-            self.session.execute(
-                delete(role_permissions).where(
-                    role_permissions.c.role_id == self.role_id
+        if self.role_id is not None:
+            if self.existing_role_id is None:
+                self.session.execute(
+                    delete(role_permissions).where(
+                        role_permissions.c.role_id == self.role_id
+                    )
                 )
-            )
-            self.session.execute(
-                delete(Role).where(Role.id == self.role_id)
-            )
+                self.session.execute(
+                    delete(Role).where(Role.id == self.role_id)
+                )
+            else:
+                added_permission_ids = [
+                    permission_id
+                    for permission_id
+                    in self.permission_ids_by_code.values()
+                    if permission_id
+                    not in self.existing_role_permission_ids
+                ]
+                if added_permission_ids:
+                    self.session.execute(
+                        delete(role_permissions).where(
+                            role_permissions.c.role_id == self.role_id,
+                            role_permissions.c.permission_id.in_(
+                                added_permission_ids
+                            ),
+                        )
+                    )
 
         created_permission_ids = [
             permission_id
-            for code, permission_id in zip(
-                (code for code, _ in ADMIN_PERMISSIONS),
-                self.permission_ids,
-                strict=True,
-            )
+            for code, permission_id
+            in self.permission_ids_by_code.items()
             if self.existing_permission_ids[code] is None
         ]
         if created_permission_ids:
@@ -109,13 +136,10 @@ class BootstrapPostgreSQLIntegrationTests(TestCase):
             self.assertIsNotNone(permission)
             assert permission is not None
             permissions.append(permission)
+            self.permission_ids_by_code[code] = permission.id
             self.assertTrue(
                 uow.roles.has_permission(role.id, permission.id)
             )
-
-        self.permission_ids = [
-            permission.id for permission in permissions
-        ]
 
         repeated_user = service.bootstrap_admin(
             self.email,

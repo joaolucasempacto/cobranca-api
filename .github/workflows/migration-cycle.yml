@@ -33,7 +33,7 @@ jobs:
       POSTGRES_HOST: localhost
       POSTGRES_PORT: "5432"
       DATABASE_URL: postgresql+psycopg://cobranca:cobranca@localhost:5432/cobranca_test
-      JWT_SECRET_KEY: test-only-secret-key
+      JWT_SECRET_KEY: test-only-secret-key-32-bytes-long!!
 
     steps:
       - name: Checkout repository

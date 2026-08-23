@@ -1,5 +1,6 @@
 from functools import lru_cache
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -21,10 +22,10 @@ class Settings(BaseSettings):
 
     DATABASE_URL: str
 
-    JWT_SECRET_KEY: str
+    JWT_SECRET_KEY: str = Field(min_length=32)
     JWT_ALGORITHM: str = "HS256"
-    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
-    JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=15, gt=0)
+    JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = Field(default=7, gt=0)
 
 
 @lru_cache

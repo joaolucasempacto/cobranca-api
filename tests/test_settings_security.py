@@ -2,7 +2,7 @@ from unittest import TestCase
 
 from pydantic import ValidationError
 
-from app.core.config import Settings
+from app.core.config import JWT_SECRET_PLACEHOLDER, Settings
 
 
 class SettingsSecurityTests(TestCase):
@@ -47,6 +47,25 @@ class SettingsSecurityTests(TestCase):
 
         with self.assertRaises(ValidationError):
             Settings(**settings)
+
+    def test_rejects_placeholder_jwt_secret_in_production(self) -> None:
+        settings = self.base_settings | {
+            "ENVIRONMENT": "production",
+            "JWT_SECRET_KEY": JWT_SECRET_PLACEHOLDER,
+        }
+
+        with self.assertRaises(ValidationError):
+            Settings(**settings)
+
+    def test_allows_placeholder_jwt_secret_in_development(self) -> None:
+        settings = self.base_settings | {
+            "ENVIRONMENT": "development",
+            "JWT_SECRET_KEY": JWT_SECRET_PLACEHOLDER,
+        }
+
+        parsed = Settings(**settings)
+
+        self.assertEqual(parsed.JWT_SECRET_KEY, JWT_SECRET_PLACEHOLDER)
 
     def test_accepts_valid_security_settings(self) -> None:
         settings = Settings(**self.base_settings)

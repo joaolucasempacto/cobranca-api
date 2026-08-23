@@ -26,6 +26,12 @@ class SettingsSecurityTests(TestCase):
         with self.assertRaises(ValidationError):
             Settings(**settings)
 
+    def test_rejects_unsupported_jwt_algorithm(self) -> None:
+        settings = self.base_settings | {"JWT_ALGORITHM": "none"}
+
+        with self.assertRaises(ValidationError):
+            Settings(**settings)
+
     def test_rejects_non_positive_access_token_expiration(self) -> None:
         settings = self.base_settings | {
             "JWT_ACCESS_TOKEN_EXPIRE_MINUTES": 0,
@@ -46,5 +52,6 @@ class SettingsSecurityTests(TestCase):
         settings = Settings(**self.base_settings)
 
         self.assertEqual(settings.JWT_SECRET_KEY, "x" * 32)
+        self.assertEqual(settings.JWT_ALGORITHM, "HS256")
         self.assertEqual(settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES, 15)
         self.assertEqual(settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS, 7)

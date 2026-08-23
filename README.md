@@ -106,7 +106,7 @@ GET    /api/v1/users/{user_id}
 PATCH  /api/v1/users/{user_id}
 DELETE /api/v1/users/{user_id}
 GET    /api/v1/users/{user_id}/roles
-POST   /api/v1/users/{user_id}/roles/{role_id}
+PUT    /api/v1/users/{user_id}/roles/{role_id}
 DELETE /api/v1/users/{user_id}/roles/{role_id}
 ```
 

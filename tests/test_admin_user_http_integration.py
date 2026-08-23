@@ -2,14 +2,20 @@ from unittest import TestCase
 from uuid import UUID, uuid4
 
 from fastapi.testclient import TestClient
-from sqlalchemy import delete
+from sqlalchemy import delete, select
 
 from app.database.session import SessionLocal
 from app.main import app
-from app.models.associations import user_roles
+from app.models.associations import role_permissions, user_roles
+from app.models.permission import Permission
+from app.models.role import Role
 from app.models.user import User
 from app.repositories.unit_of_work import UnitOfWork
-from app.services.bootstrap_service import BootstrapService
+from app.services.bootstrap_service import (
+    ADMIN_PERMISSIONS,
+    ADMIN_ROLE_NAME,
+    BootstrapService,
+)
 
 
 class AdministrativeUserHTTPIntegrationTests(TestCase):
@@ -21,6 +27,16 @@ class AdministrativeUserHTTPIntegrationTests(TestCase):
         self.password = "integration-secret"
         self.admin_id: UUID | None = None
         self.user_id: UUID | None = None
+
+        self.existing_admin_role_id = self.session.scalar(
+            select(Role.id).where(Role.name == ADMIN_ROLE_NAME)
+        )
+        self.existing_admin_permission_ids = {
+            code: self.session.scalar(
+                select(Permission.id).where(Permission.code == code)
+            )
+            for code, _ in ADMIN_PERMISSIONS
+        }
 
         admin = BootstrapService(
             UnitOfWork(self.session)
@@ -47,6 +63,34 @@ class AdministrativeUserHTTPIntegrationTests(TestCase):
             self.session.execute(
                 delete(User).where(User.id.in_(user_ids))
             )
+
+        admin_role = self.session.scalar(
+            select(Role).where(Role.name == ADMIN_ROLE_NAME)
+        )
+        if (
+            self.existing_admin_role_id is None
+            and admin_role is not None
+        ):
+            self.session.execute(
+                delete(role_permissions).where(
+                    role_permissions.c.role_id == admin_role.id
+                )
+            )
+            self.session.delete(admin_role)
+
+        for code, _ in ADMIN_PERMISSIONS:
+            if self.existing_admin_permission_ids[code] is not None:
+                continue
+            permission = self.session.scalar(
+                select(Permission).where(Permission.code == code)
+            )
+            if permission is not None:
+                self.session.execute(
+                    delete(role_permissions).where(
+                        role_permissions.c.permission_id == permission.id
+                    )
+                )
+                self.session.delete(permission)
 
         self.session.commit()
         self.session.close()

@@ -45,3 +45,22 @@ class PasswordSecurityTests(TestCase):
         malformed_hash = "scrypt$16384$8$1$a$a"
 
         self.assertFalse(verify_password("SenhaForte#2026", malformed_hash))
+
+    def test_verify_password_rejects_unsupported_scrypt_parameters(self) -> None:
+        valid_hash = hash_password("SenhaForte#2026")
+        parts = valid_hash.split("$")
+        parts[1] = str(2**20)
+        expensive_hash = "$".join(parts)
+
+        self.assertFalse(
+            verify_password("SenhaForte#2026", expensive_hash)
+        )
+
+    def test_verify_password_rejects_invalid_salt_or_key_lengths(self) -> None:
+        valid_hash = hash_password("SenhaForte#2026")
+        algorithm, n, r, p, _salt, key = valid_hash.split("$", 5)
+        short_salt_hash = f"{algorithm}${n}${r}${p}$YQ==${key}"
+
+        self.assertFalse(
+            verify_password("SenhaForte#2026", short_salt_hash)
+        )

@@ -36,15 +36,23 @@ def verify_password(password: str, password_hash: str) -> bool:
         algorithm, n, r, p, salt_b64, key_b64 = password_hash.split("$", 5)
         if algorithm != "scrypt":
             return False
+
+        parameters = (int(n), int(r), int(p))
+        if parameters != (_SCRYPT_N, _SCRYPT_R, _SCRYPT_P):
+            return False
+
         salt = base64.urlsafe_b64decode(salt_b64.encode("ascii"))
         expected_key = base64.urlsafe_b64decode(key_b64.encode("ascii"))
+        if len(salt) != _SALT_BYTES or len(expected_key) != _KEY_BYTES:
+            return False
+
         derived_key = hashlib.scrypt(
             password.encode("utf-8"),
             salt=salt,
-            n=int(n),
-            r=int(r),
-            p=int(p),
-            dklen=len(expected_key),
+            n=_SCRYPT_N,
+            r=_SCRYPT_R,
+            p=_SCRYPT_P,
+            dklen=_KEY_BYTES,
         )
     except (binascii.Error, ValueError, TypeError):
         return False

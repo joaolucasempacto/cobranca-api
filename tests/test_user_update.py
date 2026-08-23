@@ -7,24 +7,38 @@ from uuid import uuid4
 from pydantic import ValidationError
 
 from app.exceptions.base import ConflictError
+from app.models.user import User
 from app.routers.users import update_user
 from app.schemas.user import UserUpdate
 from app.services.user_service import UserService
 
 
 class UserUpdateTests(TestCase):
+    def test_model_updates_user_details(self) -> None:
+        user = User(
+            email="old@example.com",
+            password_hash="old-hash",
+            is_active=True,
+        )
+
+        user.update_details(
+            email="new@example.com",
+            password_hash="new-hash",
+            is_active=False,
+        )
+
+        self.assertEqual(user.email, "new@example.com")
+        self.assertEqual(user.password_hash, "new-hash")
+        self.assertFalse(user.is_active)
+
     @patch("app.services.user_service.hash_password")
     def test_service_updates_fields_and_commits(
         self,
         hash_password: Mock,
     ) -> None:
         user_id = uuid4()
-        user = SimpleNamespace(
-            id=user_id,
-            email="old@example.com",
-            password_hash="old-hash",
-            is_active=True,
-        )
+        user = Mock()
+        user.email = "old@example.com"
         uow = Mock()
         uow.users.get_by_id.return_value = user
         uow.users.exists_by_email.return_value = False
@@ -38,9 +52,11 @@ class UserUpdateTests(TestCase):
         )
 
         self.assertIs(result, user)
-        self.assertEqual(user.email, "new@example.com")
-        self.assertEqual(user.password_hash, "new-hash")
-        self.assertFalse(user.is_active)
+        user.update_details.assert_called_once_with(
+            email="new@example.com",
+            password_hash="new-hash",
+            is_active=False,
+        )
         uow.commit.assert_called_once_with()
 
     def test_service_rejects_duplicate_email(self) -> None:

@@ -27,6 +27,20 @@ class User(AuditMixin, Base):
         server_default=true(),
     )
 
+    def update_details(
+        self,
+        *,
+        email: str | None = None,
+        password_hash: str | None = None,
+        is_active: bool | None = None,
+    ) -> None:
+        if email is not None:
+            self.email = email
+        if password_hash is not None:
+            self.password_hash = password_hash
+        if is_active is not None:
+            self.is_active = is_active
+
     def soft_delete(self) -> None:
         self.is_active = False
         self.deleted_at = datetime.now(timezone.utc)

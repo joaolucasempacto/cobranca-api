@@ -101,11 +101,17 @@ class UserService:
         if email is not None and email != user.email:
             if self._uow.users.exists_by_email(email):
                 raise ConflictError("E-mail já cadastrado")
-            user.email = email
-        if password is not None:
-            user.password_hash = hash_password(password)
-        if is_active is not None:
-            user.is_active = is_active
+
+        password_hash = (
+            hash_password(password)
+            if password is not None
+            else None
+        )
+        user.update_details(
+            email=email,
+            password_hash=password_hash,
+            is_active=is_active,
+        )
         self._uow.commit()
         return user
 

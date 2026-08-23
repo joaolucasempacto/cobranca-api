@@ -1,4 +1,4 @@
-from app.core.security import hash_password
+from app.core.security import hash_password, verify_password
 from app.exceptions.base import ConflictError
 from app.models.permission import Permission
 from app.models.role import Role
@@ -22,6 +22,10 @@ class BootstrapService:
         self._uow = uow
 
     def bootstrap_admin(self, email: str, password: str) -> User:
+        user = self._get_or_create_user(email, password)
+        if not user.is_active:
+            raise ConflictError("Usuário administrador está inativo")
+
         permissions = [
             self._get_or_create_permission(code, description)
             for code, description in ADMIN_PERMISSIONS
@@ -31,10 +35,6 @@ class BootstrapService:
         for permission in permissions:
             if not self._uow.roles.has_permission(role.id, permission.id):
                 self._uow.roles.add_permission(role.id, permission.id)
-
-        user = self._get_or_create_user(email, password)
-        if not user.is_active:
-            raise ConflictError("Usuário administrador está inativo")
 
         if not self._uow.users.has_role(user.id, role.id):
             self._uow.users.add_role(user.id, role.id)
@@ -76,6 +76,10 @@ class BootstrapService:
     def _get_or_create_user(self, email: str, password: str) -> User:
         user = self._uow.users.get_by_email(email)
         if user is not None:
+            if not verify_password(password, user.password_hash):
+                raise ConflictError(
+                    "Usuário existente não corresponde à senha informada"
+                )
             return user
         if self._uow.users.exists_by_email(email):
             raise ConflictError(

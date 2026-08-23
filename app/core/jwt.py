@@ -17,6 +17,9 @@ def _create_token(
     algorithm: str,
     expires_delta: timedelta,
 ) -> str:
+    if not subject:
+        raise ValueError("JWT subject must not be empty")
+
     now = datetime.now(timezone.utc)
     payload: dict[str, Any] = {
         "sub": subject,

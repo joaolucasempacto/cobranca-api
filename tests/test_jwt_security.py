@@ -28,6 +28,13 @@ class JwtSecurityTests(TestCase):
 
         self.assertEqual(payload["type"], "refresh")
 
+    def test_create_rejects_empty_subject(self) -> None:
+        with self.assertRaises(ValueError):
+            create_access_token("", SECRET_KEY)
+
+        with self.assertRaises(ValueError):
+            create_refresh_token("", SECRET_KEY)
+
     def test_decode_rejects_wrong_expected_type(self) -> None:
         token = create_access_token("user-123", SECRET_KEY)
 

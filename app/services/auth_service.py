@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
 from app.core.jwt import create_access_token, create_refresh_token, decode_token
@@ -80,7 +80,22 @@ class AuthService:
         user = self._uow.users.get_active_by_id(user_id)
         if user is None:
             raise UnauthorizedError("Usuário inativo ou não encontrado")
-        return self._create_token_pair(str(user.id))
+
+        expires_at = payload.get("exp")
+        if type(expires_at) not in (int, float):
+            expires_at = (
+                datetime.now(timezone.utc)
+                + timedelta(days=self._refresh_token_expire_days)
+            ).timestamp()
+
+        token_pair = self._create_token_pair(str(user.id))
+        self._revoke_token(
+            jti=jti,
+            user_id=user_id,
+            token_type=TokenType.REFRESH,
+            expires_at=expires_at,
+        )
+        return token_pair
 
     def logout(self, token: str) -> None:
         payload = decode_token(
@@ -105,10 +120,24 @@ class AuthService:
             user_id = UUID(subject)
         except ValueError as exc:
             raise UnauthorizedError("Token inválido ou expirado") from exc
-        revoked_token = RevokedToken(
+        self._revoke_token(
             jti=jti,
             user_id=user_id,
             token_type=TokenType(token_type),
+            expires_at=expires_at,
+        )
+
+    def _revoke_token(
+        self,
+        jti: str,
+        user_id: UUID,
+        token_type: TokenType,
+        expires_at: int | float,
+    ) -> None:
+        revoked_token = RevokedToken(
+            jti=jti,
+            user_id=user_id,
+            token_type=token_type,
             expires_at=datetime.fromtimestamp(expires_at, tz=timezone.utc),
         )
         self._uow.revoked_tokens.add(revoked_token)

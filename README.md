@@ -52,6 +52,28 @@ A API ficará disponível em `http://localhost:8000`.
 
 No startup, o container da API aguarda o PostgreSQL ficar saudável, executa `alembic upgrade head` e inicia o Uvicorn.
 
+### Criar o administrador inicial
+
+Depois que a API e o PostgreSQL estiverem em execução, inicialize o primeiro administrador pelo próprio container da API:
+
+```bash
+docker compose exec api python -m app.cli.bootstrap_admin \
+  --email admin@example.com \
+  --password 'troque-por-uma-senha-segura'
+```
+
+O comando é idempotente: pode ser executado novamente para completar as associações RBAC já existentes. Ele cria ou reutiliza o usuário informado, o role `admin` e as permissões administrativas atuais de usuários, roles e permissions.
+
+Em execução local, fora do Docker, use o mesmo CLI após aplicar as migrations e configurar o `.env`:
+
+```bash
+python -m app.cli.bootstrap_admin \
+  --email admin@example.com \
+  --password 'troque-por-uma-senha-segura'
+```
+
+Após o bootstrap, use esse usuário em `POST /api/v1/auth/login` para obter os tokens JWT.
+
 Health check:
 
 ```text

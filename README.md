@@ -93,16 +93,22 @@ DELETE /api/v1/users/{user_id}/roles/{role_id}
 ```text
 GET    /api/v1/roles
 POST   /api/v1/roles
+GET    /api/v1/roles/{role_id}
+PATCH  /api/v1/roles/{role_id}
+DELETE /api/v1/roles/{role_id}
 GET    /api/v1/roles/{role_id}/permissions
-POST   /api/v1/roles/{role_id}/permissions/{permission_id}
+PUT    /api/v1/roles/{role_id}/permissions/{permission_id}
 DELETE /api/v1/roles/{role_id}/permissions/{permission_id}
 ```
 
 ### Permissions
 
 ```text
-GET  /api/v1/permissions
-POST /api/v1/permissions
+GET    /api/v1/permissions
+POST   /api/v1/permissions
+GET    /api/v1/permissions/{permission_id}
+PATCH  /api/v1/permissions/{permission_id}
+DELETE /api/v1/permissions/{permission_id}
 ```
 
 Os endpoints administrativos são protegidos por autenticação Bearer e permissões RBAC.

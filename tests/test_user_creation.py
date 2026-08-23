@@ -4,9 +4,11 @@ from unittest import TestCase
 from unittest.mock import Mock, patch
 from uuid import uuid4
 
+from pydantic import ValidationError
+
 from app.exceptions.base import ConflictError
 from app.routers.users import create_user, router
-from app.schemas.user import UserCreate
+from app.schemas.user import UserCreate, UserUpdate
 from app.services.user_service import UserService
 
 
@@ -49,6 +51,19 @@ class UserCreationServiceTests(TestCase):
         uow.commit.assert_not_called()
 
 
+class UserPasswordSchemaTests(TestCase):
+    def test_create_rejects_short_password(self) -> None:
+        with self.assertRaises(ValidationError):
+            UserCreate(
+                email="admin@example.com",
+                password="short",
+            )
+
+    def test_update_rejects_short_password(self) -> None:
+        with self.assertRaises(ValidationError):
+            UserUpdate(password="short")
+
+
 class UserCreationRouterTests(TestCase):
     def test_create_user_delegates_to_service(self) -> None:
         now = datetime.now(timezone.utc)
@@ -64,7 +79,7 @@ class UserCreationRouterTests(TestCase):
         service.create.return_value = created_user
         payload = UserCreate(
             email="admin@example.com",
-            password="secret",
+            password="secret123",
         )
 
         response = create_user(payload, service, Mock())
@@ -73,7 +88,7 @@ class UserCreationRouterTests(TestCase):
         self.assertNotIn("password_hash", response.model_dump())
         service.create.assert_called_once_with(
             email="admin@example.com",
-            password="secret",
+            password="secret123",
             is_active=True,
         )
 

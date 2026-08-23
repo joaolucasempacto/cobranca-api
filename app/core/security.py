@@ -1,4 +1,5 @@
 import base64
+import binascii
 import hashlib
 import hmac
 import os
@@ -40,7 +41,7 @@ def verify_password(password: str, password_hash: str) -> bool:
             p=int(p),
             dklen=len(expected_key),
         )
-    except (ValueError, TypeError):
+    except (binascii.Error, ValueError, TypeError):
         return False
 
     return hmac.compare_digest(derived_key, expected_key)

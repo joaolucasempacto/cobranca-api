@@ -31,3 +31,8 @@ class PasswordSecurityTests(TestCase):
 
         self.assertFalse(verify_password("SenhaErrada", password_hash))
         self.assertFalse(verify_password("SenhaForte#2026", "invalid-hash"))
+
+    def test_verify_password_rejects_invalid_base64_hash(self) -> None:
+        malformed_hash = "scrypt$16384$8$1$a$a"
+
+        self.assertFalse(verify_password("SenhaForte#2026", malformed_hash))

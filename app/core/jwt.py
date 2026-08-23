@@ -74,10 +74,16 @@ def decode_token(
     except InvalidTokenError as exc:
         raise UnauthorizedError("Token inválido ou expirado") from exc
 
+    subject = payload.get("sub")
+    jti = payload.get("jti")
     issued_at = payload.get("iat")
     expires_at = payload.get("exp")
     if (
-        type(issued_at) not in (int, float)
+        not isinstance(subject, str)
+        or not subject
+        or not isinstance(jti, str)
+        or not jti
+        or type(issued_at) not in (int, float)
         or type(expires_at) not in (int, float)
     ):
         raise UnauthorizedError("Token inválido ou expirado")

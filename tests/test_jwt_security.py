@@ -1,4 +1,7 @@
+from datetime import datetime, timedelta, timezone
 from unittest import TestCase
+
+import jwt
 
 from app.core.jwt import create_access_token, create_refresh_token, decode_token
 from app.exceptions.base import UnauthorizedError
@@ -42,6 +45,26 @@ class JwtSecurityTests(TestCase):
             "user-123",
             SECRET_KEY,
             expires_minutes=-1,
+        )
+
+        with self.assertRaises(UnauthorizedError):
+            decode_token(token, SECRET_KEY)
+
+    def test_decode_rejects_malformed_token(self) -> None:
+        with self.assertRaises(UnauthorizedError):
+            decode_token("not-a-jwt", SECRET_KEY)
+
+    def test_decode_rejects_missing_required_claim(self) -> None:
+        now = datetime.now(timezone.utc)
+        token = jwt.encode(
+            {
+                "sub": "user-123",
+                "type": "access",
+                "iat": now,
+                "exp": now + timedelta(minutes=5),
+            },
+            SECRET_KEY,
+            algorithm="HS256",
         )
 
         with self.assertRaises(UnauthorizedError):

@@ -1,3 +1,5 @@
+from collections.abc import Iterable
+from typing import Any
 from unittest import TestCase
 
 from app.main import app
@@ -33,11 +35,20 @@ EXPECTED_API_ROUTES = {
 }
 
 
+def iter_routes(routes: Iterable[Any]) -> Iterable[Any]:
+    for route in routes:
+        nested_routes = getattr(route, "routes", None)
+        if nested_routes is not None:
+            yield from iter_routes(nested_routes)
+        else:
+            yield route
+
+
 class APIContractTests(TestCase):
     def test_expected_api_routes_and_methods_are_registered(self) -> None:
         registered_routes: set[tuple[str, str]] = set()
 
-        for route in app.routes:
+        for route in iter_routes(app.router.routes):
             path = getattr(route, "path", None)
             methods = getattr(route, "methods", None)
             if not isinstance(path, str) or not path.startswith("/api/v1/"):

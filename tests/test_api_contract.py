@@ -35,11 +35,15 @@ EXPECTED_API_ROUTES = {
 
 class APIContractTests(TestCase):
     def test_expected_api_routes_and_methods_are_registered(self) -> None:
-        registered_routes = {
-            (method, route.path)
-            for route in app.routes
-            if route.path.startswith("/api/v1/")
-            for method in route.methods or set()
-        }
+        registered_routes: set[tuple[str, str]] = set()
+
+        for route in app.routes:
+            path = getattr(route, "path", None)
+            methods = getattr(route, "methods", None)
+            if not isinstance(path, str) or not path.startswith("/api/v1/"):
+                continue
+
+            for method in methods or set():
+                registered_routes.add((method, path))
 
         self.assertEqual(registered_routes, EXPECTED_API_ROUTES)

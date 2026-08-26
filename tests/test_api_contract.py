@@ -1,7 +1,5 @@
 from unittest import TestCase
 
-from fastapi.routing import APIRoute
-
 from app.main import app
 
 
@@ -40,9 +38,8 @@ class APIContractTests(TestCase):
         registered_routes = {
             (method, route.path)
             for route in app.routes
-            if isinstance(route, APIRoute)
-            and route.path.startswith("/api/v1/")
-            for method in route.methods
+            if route.path.startswith("/api/v1/")
+            for method in route.methods or set()
         }
 
         self.assertEqual(registered_routes, EXPECTED_API_ROUTES)

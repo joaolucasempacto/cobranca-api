@@ -13,7 +13,7 @@ class EmailValidationTests(TestCase):
 
     def test_user_create_rejects_invalid_email(self) -> None:
         with self.assertRaises(ValidationError):
-            UserCreate(email="invalid-email", password="secret")
+            UserCreate(email="invalid-email", password="secret123")
 
     def test_user_update_rejects_invalid_email(self) -> None:
         with self.assertRaises(ValidationError):
@@ -22,7 +22,7 @@ class EmailValidationTests(TestCase):
     def test_valid_email_is_accepted(self) -> None:
         payload = UserCreate(
             email="person@example.com",
-            password="secret",
+            password="secret123",
         )
 
         self.assertEqual(str(payload.email), "person@example.com")

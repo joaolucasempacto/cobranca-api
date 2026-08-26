@@ -37,7 +37,7 @@ class BootstrapServiceTests(TestCase):
 
         result = BootstrapService(uow).bootstrap_admin(
             "admin@example.com",
-            "secret",
+            "secret123",
         )
 
         self.assertIs(result, user)
@@ -77,11 +77,11 @@ class BootstrapServiceTests(TestCase):
 
         result = BootstrapService(uow).bootstrap_admin(
             user.email,
-            "secret",
+            "secret123",
         )
 
         self.assertIs(result, user)
-        verify_password.assert_called_once_with("secret", "stored-hash")
+        verify_password.assert_called_once_with("secret123", "stored-hash")
         uow.permissions.add.assert_not_called()
         uow.roles.add.assert_not_called()
         uow.roles.add_permission.assert_not_called()
@@ -144,7 +144,7 @@ class BootstrapServiceTests(TestCase):
         ):
             BootstrapService(uow).bootstrap_admin(
                 "admin@example.com",
-                "secret",
+                "secret123",
             )
 
         uow.commit.assert_not_called()

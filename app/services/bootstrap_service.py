@@ -14,6 +14,8 @@ ADMIN_PERMISSIONS: tuple[tuple[str, str], ...] = (
     ("roles:write", "Gerenciar perfis"),
     ("permissions:read", "Consultar permissões"),
     ("permissions:write", "Gerenciar permissões"),
+    ("customers:read", "Consultar clientes"),
+    ("customers:write", "Gerenciar clientes"),
 )
 
 

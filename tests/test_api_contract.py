@@ -30,6 +30,11 @@ EXPECTED_API_ROUTES = {
     ("GET", "/api/v1/permissions/{permission_id}"),
     ("PATCH", "/api/v1/permissions/{permission_id}"),
     ("DELETE", "/api/v1/permissions/{permission_id}"),
+    ("GET", "/api/v1/customers"),
+    ("POST", "/api/v1/customers"),
+    ("GET", "/api/v1/customers/{customer_id}"),
+    ("PATCH", "/api/v1/customers/{customer_id}"),
+    ("DELETE", "/api/v1/customers/{customer_id}"),
 }
 
 

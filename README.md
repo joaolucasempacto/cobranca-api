@@ -4,7 +4,7 @@ API de cobrança construída com FastAPI, SQLAlchemy 2.0, PostgreSQL e Clean Arc
 
 ## Status
 
-Em desenvolvimento avançado. A fundação de identidade, autenticação JWT, RBAC, administração de usuários, roles e permissions, migrations, Docker/Compose e testes automatizados já está implementada.
+Em desenvolvimento avançado. A fundação de identidade, autenticação JWT, RBAC, administração de usuários, roles e permissions, gestão de clientes/devedores, migrations, Docker/Compose e testes automatizados já está implementada.
 
 ## Stack
 
@@ -62,7 +62,7 @@ docker compose exec api python -m app.cli.bootstrap_admin \
   --password 'troque-por-uma-senha-segura'
 ```
 
-O comando é idempotente: pode ser executado novamente para completar as associações RBAC já existentes. Ele cria ou reutiliza o usuário informado, o role `admin` e as permissões administrativas atuais de usuários, roles e permissions.
+O comando é idempotente: pode ser executado novamente para completar as associações RBAC já existentes. Ele cria ou reutiliza o usuário informado, o role `admin` e as permissões administrativas atuais de usuários, roles, permissions e clientes.
 
 Em execução local, fora do Docker, use o mesmo CLI após aplicar as migrations e configurar o `.env`:
 
@@ -132,6 +132,18 @@ GET    /api/v1/permissions/{permission_id}
 PATCH  /api/v1/permissions/{permission_id}
 DELETE /api/v1/permissions/{permission_id}
 ```
+
+### Clientes/devedores
+
+```text
+GET    /api/v1/customers
+POST   /api/v1/customers
+GET    /api/v1/customers/{customer_id}
+PATCH  /api/v1/customers/{customer_id}
+DELETE /api/v1/customers/{customer_id}
+```
+
+O CPF/CNPJ é aceito com ou sem pontuação e armazenado apenas com dígitos. O cadastro permite contato e endereço opcionais, paginação e exclusão lógica.
 
 Os endpoints administrativos são protegidos por autenticação Bearer e permissões RBAC.
 

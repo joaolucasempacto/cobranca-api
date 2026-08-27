@@ -1,6 +1,7 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
+from app.repositories.customer_repository import CustomerRepository
 from app.repositories.permission_repository import PermissionRepository
 from app.repositories.role_repository import RoleRepository
 from app.repositories.user_repository import UserRepository
@@ -65,4 +66,18 @@ class UniqueConstraintConsistencyTests(TestCase):
         )
 
         self.assertIn("permissions.code", query)
+        self.assertNotIn("deleted_at", query)
+
+    def test_customer_document_existence_matches_database_unique_constraint(
+        self,
+    ) -> None:
+        repository = CustomerRepository(Mock())
+
+        query = self._compiled_exists_query(
+            repository,
+            "exists_by_document",
+            "12345678901",
+        )
+
+        self.assertIn("customers.document", query)
         self.assertNotIn("deleted_at", query)

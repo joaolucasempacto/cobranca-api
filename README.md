@@ -4,7 +4,7 @@ API de cobrança construída com FastAPI, SQLAlchemy 2.0, PostgreSQL e Clean Arc
 
 ## Status
 
-Em desenvolvimento avançado. A fundação de identidade, autenticação JWT, RBAC, administração de usuários, roles e permissions, gestão de clientes/devedores, migrations, Docker/Compose e testes automatizados já está implementada.
+Em desenvolvimento avançado. A fundação de identidade, autenticação JWT, RBAC, administração de usuários, roles e permissions, gestão de clientes/devedores e cobranças, migrations, Docker/Compose e testes automatizados já está implementada.
 
 ## Stack
 
@@ -144,6 +144,19 @@ DELETE /api/v1/customers/{customer_id}
 ```
 
 O CPF/CNPJ é aceito com ou sem pontuação e armazenado apenas com dígitos. O cadastro permite contato e endereço opcionais, paginação e exclusão lógica.
+
+### Cobranças
+
+```text
+GET    /api/v1/charges
+POST   /api/v1/charges
+GET    /api/v1/charges/{charge_id}
+PATCH  /api/v1/charges/{charge_id}
+POST   /api/v1/charges/{charge_id}/cancel
+DELETE /api/v1/charges/{charge_id}
+```
+
+Cada cobrança pertence a um cliente e possui valor decimal, vencimento, descrição opcional e status `pending`, `overdue`, `paid` ou `cancelled`. Cobranças vencidas são identificadas pelas regras do domínio; pagamento será registrado pelo fluxo próprio da próxima etapa do projeto.
 
 Os endpoints administrativos são protegidos por autenticação Bearer e permissões RBAC.
 

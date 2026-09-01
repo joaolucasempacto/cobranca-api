@@ -1,3 +1,4 @@
+from app.models.charge import Charge
 from app.models.customer import Customer
 from app.models.permission import Permission
 from app.models.role import Role
@@ -6,6 +7,7 @@ from app.models.revoked_token import RevokedToken
 from app.models.associations import role_permissions, user_roles
 
 __all__ = (
+    "Charge",
     "Customer",
     "Permission",
     "RevokedToken",

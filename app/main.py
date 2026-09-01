@@ -13,6 +13,7 @@ from app.exceptions.handlers import (
     unhandled_exception_handler,
 )
 from app.routers.auth import router as auth_router
+from app.routers.charges import router as charges_router
 from app.routers.customers import router as customers_router
 from app.routers.health import router as health_router
 from app.routers.permissions import router as permissions_router
@@ -57,6 +58,10 @@ app.include_router(
 )
 app.include_router(
     customers_router,
+    prefix="/api/v1",
+)
+app.include_router(
+    charges_router,
     prefix="/api/v1",
 )
 app.include_router(

@@ -35,6 +35,12 @@ EXPECTED_API_ROUTES = {
     ("GET", "/api/v1/customers/{customer_id}"),
     ("PATCH", "/api/v1/customers/{customer_id}"),
     ("DELETE", "/api/v1/customers/{customer_id}"),
+    ("GET", "/api/v1/charges"),
+    ("POST", "/api/v1/charges"),
+    ("GET", "/api/v1/charges/{charge_id}"),
+    ("PATCH", "/api/v1/charges/{charge_id}"),
+    ("POST", "/api/v1/charges/{charge_id}/cancel"),
+    ("DELETE", "/api/v1/charges/{charge_id}"),
 }
 
 

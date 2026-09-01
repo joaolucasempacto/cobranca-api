@@ -5,6 +5,7 @@ from app.repositories.unit_of_work import UnitOfWork
 
 
 class UnitOfWorkTests(TestCase):
+    @patch("app.repositories.unit_of_work.ChargeRepository")
     @patch("app.repositories.unit_of_work.CustomerRepository")
     @patch("app.repositories.unit_of_work.RevokedTokenRepository")
     @patch("app.repositories.unit_of_work.PermissionRepository")
@@ -17,6 +18,7 @@ class UnitOfWorkTests(TestCase):
         permission_repository: Mock,
         revoked_token_repository: Mock,
         customer_repository: Mock,
+        charge_repository: Mock,
     ) -> None:
         session = Mock()
 
@@ -27,6 +29,8 @@ class UnitOfWorkTests(TestCase):
         permission_repository.assert_called_once_with(session)
         revoked_token_repository.assert_called_once_with(session)
         customer_repository.assert_called_once_with(session)
+        charge_repository.assert_called_once_with(session)
+        self.assertIs(uow.charges, charge_repository.return_value)
         self.assertIs(uow.customers, customer_repository.return_value)
         self.assertIs(uow.users, user_repository.return_value)
         self.assertIs(uow.roles, role_repository.return_value)

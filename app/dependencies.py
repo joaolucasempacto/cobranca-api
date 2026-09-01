@@ -12,6 +12,7 @@ from app.models.user import User
 from app.repositories.unit_of_work import UnitOfWork
 from app.services.auth_service import AuthService
 from app.services.authorization_service import AuthorizationService
+from app.services.charge_service import ChargeService
 from app.services.customer_service import CustomerService
 from app.services.permission_service import PermissionService
 from app.services.role_service import RoleService
@@ -51,6 +52,12 @@ def get_authorization_service(
     uow: Annotated[UnitOfWork, Depends(get_unit_of_work)],
 ) -> AuthorizationService:
     return AuthorizationService(uow)
+
+
+def get_charge_service(
+    uow: Annotated[UnitOfWork, Depends(get_unit_of_work)],
+) -> ChargeService:
+    return ChargeService(uow)
 
 
 def get_customer_service(
